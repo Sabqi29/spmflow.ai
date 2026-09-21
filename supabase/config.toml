@@ -1,0 +1,4 @@
+project_id = "fysjjwszkegjcqszqvnq"
+
+[functions.spmflow-ask]
+verify_jwt = false
