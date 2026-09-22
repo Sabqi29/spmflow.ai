@@ -14,7 +14,7 @@ const securedHandler = withSupabase(
       return json({ error: "Method not allowed" }, 405);
     }
 
-    let body: { question?: unknown };
+    let body: { question?: unknown; form_level?: unknown; subject?: unknown };
     try {
       body = await req.json();
     } catch {
@@ -26,17 +26,30 @@ const securedHandler = withSupabase(
       return json({ error: "Question must contain 1 to 1500 characters" }, 400);
     }
 
+    if (body.subject && body.subject !== 'sejarah') return json({error:'Only Sejarah is available'},400);
+    const formLevel = Number(body.form_level ?? 4);
+    if (![4,5].includes(formLevel)) return json({error:'Invalid form level'},400);
+    let userId: string | undefined;
+    const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i,'');
+    if(token){const {data,error}=await ctx.supabaseAdmin.auth.getUser(token);if(error||!data.user)return json({error:'Please sign in again'},401);userId=data.user.id;}
+    const ip = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const bytes = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}:${userId||ip}`));
+    const actor = Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    const {data:allowed,error:quotaError}=await ctx.supabaseAdmin.rpc('consume_tutor_quota',{actor,maximum:userId?20:5});
+    if(quotaError)return json({error:'Usage service unavailable. Please retry.'},503);
+    if(!allowed)return json({error:'Daily question limit reached'},429);
+
     const queryEmbedding = await embeddingModel.run(question, {
       mean_pool: true,
       normalize: true,
     });
 
-    const { data: chunks, error: retrievalError } = await ctx.supabaseAdmin.rpc(
+    const { data: candidates, error: retrievalError } = await ctx.supabaseAdmin.rpc(
       "match_rag_chunks",
       {
         query_embedding: queryEmbedding,
         query_text: keywords(question).join(" OR ") || question,
-        match_count: 5,
+        match_count: 20,
       },
     );
 
@@ -44,6 +57,9 @@ const securedHandler = withSupabase(
       console.error("RAG retrieval failed", retrievalError);
       return json({ error: "Knowledge search is temporarily unavailable" }, 503);
     }
+
+    const terms = keywords(question);
+    const chunks = (candidates || []).filter((c:Record<string,unknown>)=>c.form===`Form ${formLevel}` && terms.some(term=>`${c.chapter_title} ${c.section_title} ${c.content}`.toLowerCase().includes(term))).slice(0,5);
 
     if (!chunks?.length) {
       return json({
@@ -71,6 +87,7 @@ const securedHandler = withSupabase(
         page_end: selected.page_end,
         form: selected.form,
         chunk_id: selected.id,
+        snippet: String(selected.content).slice(0,6000),
       },
       query: question,
       degraded: !generated,

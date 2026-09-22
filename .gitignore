@@ -1,4 +1,6 @@
 .env
+node_modules/
+.sites-runtime/
 .env.*
 !.env.example
 __pycache__/
