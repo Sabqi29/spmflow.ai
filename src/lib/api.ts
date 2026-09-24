@@ -4,6 +4,13 @@ export const PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 
 export const supabase = createClient(SUPABASE_URL, PUBLISHABLE_KEY);
 export type Source = {chapter_title?:string;section_title?:string;page:number;form?:string;chunk_id?:string;snippet?:string};
 export type Message = {id:string;role:'user'|'assistant';content:string;sources?:Source[];degraded?:boolean};
+export type Textbook = {id:string;title:string;url:string;printed_page_offset:number;pdf_page_count:number;expires_in:number};
+export async function getTextbook(form:number):Promise<Textbook>{
+ const response=await fetch(`${SUPABASE_URL}/functions/v1/spmflow-textbook?form_level=${form}`,{headers:{apikey:PUBLISHABLE_KEY},signal:AbortSignal.timeout(20000)});
+ const data=await response.json();
+ if(!response.ok)throw new Error(data.error||'Textbook is not available yet.');
+ return data as Textbook;
+}
 export async function askTutor(question:string, form:number):Promise<{text:string;sources:Source[];degraded:boolean}>{
  const {data:{session}}=await supabase.auth.getSession();
  const response=await fetch(`${SUPABASE_URL}/functions/v1/spmflow-ask`,{method:'POST',headers:{'Content-Type':'application/json',apikey:PUBLISHABLE_KEY,...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({question,form_level:form,subject:'sejarah'}),signal:AbortSignal.timeout(60000)});

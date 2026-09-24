@@ -10,4 +10,6 @@ export function AppProvider({children}:{children:ReactNode}){
  useEffect(()=>{supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data}=supabase.auth.onAuthStateChange((event,session)=>{setUser(session?.user||null);if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setAuthOpen(true);}});return()=>data.subscription.unsubscribe()},[]);
  return <AppContext.Provider value={{lang,setLang,t:(bm,en)=>lang==='bm'?bm:en,user,authOpen,setAuthOpen,authMode,setAuthMode}}>{children}</AppContext.Provider>;
 }
+// This hook intentionally shares the provider module; it is not a component.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp=()=>useContext(AppContext);

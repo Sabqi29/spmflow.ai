@@ -59,7 +59,10 @@ const securedHandler = withSupabase(
     }
 
     const terms = keywords(question);
-    const chunks = (candidates || []).filter((c:Record<string,unknown>)=>c.form===`Form ${formLevel}` && terms.some(term=>`${c.chapter_title} ${c.section_title} ${c.content}`.toLowerCase().includes(term))).slice(0,5);
+    const chunks = (candidates || [])
+      .filter((c:Record<string,unknown>)=>c.form===`Form ${formLevel}` && terms.some(term=>`${c.chapter_title} ${c.section_title} ${c.content}`.toLowerCase().includes(term)))
+      .sort((a:Record<string,unknown>,b:Record<string,unknown>)=>scoreChunk(question,b)-scoreChunk(question,a))
+      .slice(0,5);
 
     if (!chunks?.length) {
       return json({
@@ -118,19 +121,31 @@ function keywords(text: string) {
 }
 
 function pickExtractiveIndex(question: string, chunks: Array<Record<string, unknown>>) {
-  const terms = keywords(question);
   let bestIndex = 0;
   let bestScore = -1;
   chunks.forEach((chunk, index) => {
-    const text = `${chunk.chapter_title} ${chunk.section_title} ${chunk.content}`.toLowerCase();
-    const matches = terms.map((term) => text.match(new RegExp(term, "gu"))?.length ?? 0);
-    const score = matches.filter(Boolean).length * 10 + matches.reduce((total, count) => total + count, 0);
+    const score = scoreChunk(question, chunk);
     if (score > bestScore) {
       bestScore = score;
       bestIndex = index;
     }
   });
   return bestIndex;
+}
+
+function scoreChunk(question: string, chunk: Record<string, unknown>) {
+  const terms = keywords(question);
+  const definitionIntent = /\b(maksud|takrif|definisi|meaning|define|definition)\b/i.test(question);
+  const heading = `${chunk.chapter_title} ${chunk.section_title}`.toLowerCase();
+  const content = String(chunk.content ?? '').toLowerCase();
+  const text = `${heading} ${content}`;
+  const matches = terms.map((term) => text.match(new RegExp(term, "gu"))?.length ?? 0);
+  let score = matches.filter(Boolean).length * 10 + matches.reduce((total, count) => total + count, 0);
+  if (definitionIntent && /takrif|konsep/.test(heading)) score += 30;
+  if (definitionIntent && /ditakrifkan sebagai/.test(content)) score += 80;
+  else if (definitionIntent && /bermaksud|merujuk| ialah /.test(` ${content} `)) score += 20;
+  if (definitionIntent && /jenis kedaulatan/.test(content.slice(0, 250))) score -= 35;
+  return score;
 }
 
 function extractiveAnswer(content: string, question: string) {
@@ -167,7 +182,7 @@ async function generateWithGemini(
       `(m.s. ${chunk.page_start}-${chunk.page_end})\n${chunk.content}`
     )
     .join("\n\n");
-  const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.6-flash";
+  const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash-lite";
   const prompt = `You are an SPM Sejarah tutor. Use the supplied textbook context as the primary basis. ` +
     `Answer clearly and concisely in casual Bahasa Melayu unless the student asks in English. ` +
     `Do not invent facts. End with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
@@ -184,12 +199,12 @@ async function generateWithGemini(
         },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 2048 },
+          generationConfig: { maxOutputTokens: 1200, temperature: 0.2 },
         }),
       },
     );
     if (!response.ok) {
-      console.error("Gemini generation failed", response.status, await response.text());
+      console.error("Gemini generation failed", response.status);
       return null;
     }
     const payload = await response.json();
@@ -200,7 +215,7 @@ async function generateWithGemini(
     const text = raw.replace(/\n?RUJUKAN:.*$/im, "").trim();
     return { text, sourceIndex };
   } catch (error) {
-    console.error("Gemini request failed", error);
+    console.error("Gemini request failed", error instanceof Error ? error.name : "UnknownError");
     return null;
   }
 }
