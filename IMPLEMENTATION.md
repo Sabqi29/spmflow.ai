@@ -6,7 +6,7 @@
 - Supabase Auth, profiles, owner-isolated chat history, quiz results, waitlist and daily tutor quotas.
 - 658 Sejarah Form 4/5 RAG chunks with 384-dimensional `gte-small` embeddings, hybrid vector/full-text retrieval and page citations.
 - Private Supabase Storage bucket `textbooks` containing the optimized Form 4 (264 PDF pages) and Form 5 (268 PDF pages) books.
-- `spmflow-textbook` Edge Function issues one-hour signed URLs; PDF.js uses byte-range requests and renders only the selected page.
+- `spmflow-textbook` Edge Function issues one-hour signed URLs; PDF.js uses byte-range requests inside an RCI-style flipbook with a bounded seven-page render window, lazy thumbnails, page scrubber, zoom, fullscreen and download controls.
 - Printed-page mapping is Form 4 `PDF page = printed page + 8` and Form 5 `PDF page = printed page + 10`.
 - Clicking an AI citation switches form when necessary and opens the cited real textbook page.
 - `spmflow-ask` validates the publishable key, applies 5 guest/20 user daily quotas, retrieves by form and produces either Gemini or a grounded extractive fallback.

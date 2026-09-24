@@ -18,6 +18,6 @@ The production build uses `npm run build` and writes to `dist/`. Vercel routing 
 - `rag_chunks` with pgvector and PostgreSQL full-text search.
 - `spmflow-ask` Edge Function for retrieval, quota enforcement and Gemini/fallback answers.
 - Private `textbooks` Storage bucket plus `spmflow-textbook` signed-URL function.
-- PDF.js single-page renderer with accurate printed-page offsets and citation jumps.
+- PDF.js + `react-pageflip-enhanced` reader with desktop book spreads, mobile single pages, lazy thumbnails, page scrubber, fullscreen, download, accurate printed-page offsets and citation jumps.
 
 See [IMPLEMENTATION.md](./IMPLEMENTATION.md) for connection status, benchmark differences and the production checklist.
