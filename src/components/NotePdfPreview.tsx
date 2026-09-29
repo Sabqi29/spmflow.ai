@@ -1,0 +1,14 @@
+import {useEffect,useRef,useState} from 'react';
+import type {PDFDocumentProxy,RenderTask} from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import {ChevronLeft,ChevronRight,LoaderCircle} from 'lucide-react';
+
+export default function NotePdfPreview({url}:{url:string}){
+ const canvasRef=useRef<HTMLCanvasElement>(null),renderTask=useRef<RenderTask|null>(null);
+ const [document,setDocument]=useState<PDFDocumentProxy|null>(null),[page,setPage]=useState(1),[loading,setLoading]=useState(true),[error,setError]=useState('');
+ useEffect(()=>{let cancelled=false;let task:ReturnType<typeof import('pdfjs-dist').getDocument>|null=null;(async()=>{try{const pdfjs=await import('pdfjs-dist');pdfjs.GlobalWorkerOptions.workerSrc=workerUrl;task=pdfjs.getDocument({url,rangeChunkSize:1024*1024});const pdf=await task.promise;if(!cancelled)setDocument(pdf)}catch(caught){if(!cancelled)setError(caught instanceof Error?caught.message:'PDF failed to load.')}finally{if(!cancelled)setLoading(false)}})();return()=>{cancelled=true;void task?.destroy()}},[url]);
+ useEffect(()=>{if(!document)return;let cancelled=false;(async()=>{const canvas=canvasRef.current;if(!canvas)return;const pdfPage=await document.getPage(page);if(cancelled)return;const base=pdfPage.getViewport({scale:1});const targetWidth=Math.min(920,window.innerWidth-80);const scale=Math.max(.5,targetWidth/base.width);const dpr=Math.min(window.devicePixelRatio||1,2);const viewport=pdfPage.getViewport({scale:scale*dpr});canvas.width=Math.floor(viewport.width);canvas.height=Math.floor(viewport.height);canvas.style.width=`${viewport.width/dpr}px`;canvas.style.height=`${viewport.height/dpr}px`;const context=canvas.getContext('2d',{alpha:false});if(!context)return;renderTask.current?.cancel();const current=pdfPage.render({canvas,canvasContext:context,viewport});renderTask.current=current;try{await current.promise}catch(caught){if(!cancelled&&!(caught instanceof Error&&caught.name==='RenderingCancelledException'))setError('Page failed to render.')}})();return()=>{cancelled=true;renderTask.current?.cancel()}},[document,page]);
+ if(loading)return <div className="preview-loading"><LoaderCircle className="spin"/>Menyediakan PDF…</div>;
+ if(error||!document)return <div className="preview-loading error-text" role="alert">{error||'PDF tidak dapat dibuka.'}</div>;
+ return <div className="note-pdf-preview"><div className="note-pdf-page"><canvas ref={canvasRef}/></div><nav aria-label="Navigasi PDF"><button disabled={page<=1} onClick={()=>setPage(value=>value-1)} aria-label="Halaman sebelumnya"><ChevronLeft/></button><span>Halaman {page} / {document.numPages}</span><button disabled={page>=document.numPages} onClick={()=>setPage(value=>value+1)} aria-label="Halaman seterusnya"><ChevronRight/></button></nav></div>;
+}

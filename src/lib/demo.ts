@@ -6,3 +6,10 @@ export const quizzes:Record<number,{q:string;options:string[];correct:number;exp
  4:[{q:'Apakah maksud nasionalisme?',options:['Perasaan cinta terhadap bangsa dan negara','Persaingan ekonomi antarabangsa','Penolakan semua budaya asing','Kuasa mutlak seorang pemerintah'],correct:0,explanation:'Nasionalisme ialah perasaan cinta yang mendalam terhadap bangsa dan negara.',page:22},{q:'Yang manakah ciri kerajaan Alam Melayu?',options:['Pilihan raya umum','Raja dan wilayah pengaruh','Perindustrian moden','Pertubuhan Bangsa-Bangsa Bersatu'],correct:1,explanation:'Raja, undang-undang, wilayah pengaruh dan rakyat ialah antara ciri kerajaan Alam Melayu.',page:4},{q:'Apakah cara terbaik memahami konflik sejarah?',options:['Menghafal tarikh sahaja','Mengabaikan latar belakang','Menghubungkan sebab, peristiwa dan kesan','Mempelajari satu pihak sahaja'],correct:2,explanation:'Hubungan sebab dan akibat membantu menjelaskan mengapa peristiwa berlaku dan kesannya.',page:52}],
  5:[{q:'Apakah maksud kedaulatan?',options:['Kekayaan sumber alam','Bilangan penduduk','Kuasa tertinggi sesebuah negara','Luas wilayah sahaja'],correct:2,explanation:'Kedaulatan ialah kuasa tertinggi dan kewibawaan sesebuah negara yang bebas.',page:4},{q:'Apakah undang-undang tertinggi Malaysia?',options:['Peraturan sekolah','Perlembagaan Persekutuan','Peraturan persatuan','Arahan syarikat'],correct:1,explanation:'Perlembagaan Persekutuan menjadi undang-undang tertinggi serta asas pemerintahan negara.',page:22},{q:'Apakah sistem pemerintahan Malaysia?',options:['Raja Berperlembagaan dan Demokrasi Berparlimen','Monarki mutlak','Republik berpresiden','Pemerintahan tentera'],correct:0,explanation:'Malaysia mengamalkan Raja Berperlembagaan dan Demokrasi Berparlimen.',page:38}]
 };
+
+export const questionSets=[
+ {id:'2022-johor-kota-tinggi',year:2022,state:'Johor',title:'Kota Tinggi',questions:40},
+ {id:'2022-kelantan-mpsm',year:2022,state:'Kelantan',title:'MPSM Kelantan',questions:40},
+ {id:'2022-mrsm',year:2022,state:'MRSM',title:'Percubaan MRSM',questions:40},
+ {id:'2022-kuala-lumpur-sentul',year:2022,state:'Kuala Lumpur',title:'Sentul',questions:40}
+];
