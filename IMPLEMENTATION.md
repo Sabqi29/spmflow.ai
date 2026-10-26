@@ -32,6 +32,17 @@ GEMINI_MODEL=gemini-2.5-flash-lite
 
 Do not enter `const`, quotes, `Deno.env.get(...)` or multiple lines. The fallback remains functional until this is corrected.
 
+## Out-of-textbook questions
+
+`spmflow-ask` is textbook-first. A question only gets a textbook answer when at least `TUTOR_MIN_COVERAGE` (default `0.6`) of its specific keywords appear in one retrieved chunk of the selected form; very common words such as `sejarah` or `malaysia` are not counted. Embedding similarity is not used as a threshold because `gte-small` scores almost every pair of Malay chunks between about 0.78 and 0.90. When Gemini is available it also replies `TIADA_DALAM_BUKU` if the retrieved pages do not actually answer the question.
+
+Anything that fails those checks is out of the textbook:
+
+- Default: a polite Malay "di luar sukatan buku teks" reply (`answer_source: "none"`). If no AI call was made, it does not use the student's daily quota.
+- With `TUTOR_WEB_FALLBACK=true` and `GEMINI_API_KEY` set: Gemini answers with Grounding with Google Search (`answer_source: "web"`). The reply carries web links and search suggestions in `sources` (`kind: "web"` / `kind: "search"`), never textbook citations, and the Study page labels it as an internet answer. An answer with no search results behind it is dropped in favour of the polite reply. Optional `GEMINI_WEB_MODEL` overrides the model for this call.
+
+Grounding with Google Search is billed separately by Google and its terms require showing the search suggestions with the answer, which the Study page does.
+
 ## Remaining owner-account checklist
 
 1. Supabase Auth: set Site URL to `https://spmflow-demo.vercel.app`.
