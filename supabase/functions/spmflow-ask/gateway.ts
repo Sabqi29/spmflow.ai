@@ -33,7 +33,7 @@ export function isCacheable(task: Task, hasPractice: boolean) {
   return task === "ask" && !hasPractice;
 }
 
-/* Estimated USD cost from token counts and per-million prices (defaults: Gemini 2.5 Flash-Lite paid tier). */
+/* Estimated USD cost from token counts and per-million prices (defaults are placeholders; set GEMINI_INPUT_USD_PER_M / GEMINI_OUTPUT_USD_PER_M to the current price). */
 export function estimateCost(promptTokens: number | null, outputTokens: number | null, inputPerMillion = 0.1, outputPerMillion = 0.4) {
   return ((promptTokens ?? 0) * inputPerMillion + (outputTokens ?? 0) * outputPerMillion) / 1_000_000;
 }

@@ -27,7 +27,7 @@ Rotate the current Gemini API key because the existing secret was entered as Jav
 
 ```text
 GEMINI_API_KEY=<new raw key only>
-GEMINI_MODEL=gemini-2.5-flash-lite
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 Do not enter `const`, quotes, `Deno.env.get(...)` or multiple lines. The fallback remains functional until this is corrected.

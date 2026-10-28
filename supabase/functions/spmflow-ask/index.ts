@@ -52,7 +52,7 @@ const securedHandler = withSupabase(
       if(practice.form_level&&[4,5].includes(practice.form_level))formLevel=practice.form_level;
     }
     const task = parseTask(body.task_type, !!practice);
-    const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash-lite";
+    const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite";
     const usage = (entry: { model: string | null; cacheHit?: boolean; degraded?: boolean; promptTokens?: number | null; outputTokens?: number | null }) =>
       ctx.supabaseAdmin.rpc("log_ai_usage", {
         task_name: task, model_name: entry.model, was_cache_hit: entry.cacheHit ?? false, was_degraded: entry.degraded ?? false, guest: !userId,
