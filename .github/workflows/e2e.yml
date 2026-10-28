@@ -1,0 +1,23 @@
+name: E2E smoke
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Site to test
+        default: https://spmflow.vercel.app
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          E2E_BASE_URL: ${{ inputs.base_url }}
+          E2E_SUPABASE_URL: https://fysjjwszkegjcqszqvnq.supabase.co
+          E2E_SUPABASE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}

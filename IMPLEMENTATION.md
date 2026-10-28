@@ -10,7 +10,7 @@
 - Printed-page mapping is Form 4 `PDF page = printed page + 8` and Form 5 `PDF page = printed page + 10`.
 - Clicking an AI citation switches form when necessary and opens the cited real textbook page.
 - `spmflow-ask` validates the publishable key, applies 5 guest/20 user daily quotas, retrieves by form and produces either Gemini or a grounded extractive fallback.
-- Production is live at `https://spmflow-demo.vercel.app`; lint, TypeScript, production build and npm audit all pass (0 known vulnerabilities).
+- Production is live at `https://spmflow.vercel.app`; lint, TypeScript, production build and npm audit all pass (0 known vulnerabilities).
 
 ## RCI benchmark comparison
 
@@ -34,8 +34,8 @@ Do not enter `const`, quotes, `Deno.env.get(...)` or multiple lines. The fallbac
 
 ## Remaining owner-account checklist
 
-1. Supabase Auth: set Site URL to `https://spmflow-demo.vercel.app`.
-2. Supabase Auth: add `https://spmflow-demo.vercel.app/belajar` and `https://spmflow-demo.vercel.app/**` to Redirect URLs; keep `http://127.0.0.1:5173/**` for development.
+1. Supabase Auth: set Site URL to `https://spmflow.vercel.app`.
+2. Supabase Auth: add `https://spmflow.vercel.app/belajar` and `https://spmflow.vercel.app/**` to Redirect URLs; keep `http://127.0.0.1:5173/**` for development.
 3. Supabase Auth: enable leaked-password protection, then configure custom SMTP before real users. The default email service is only suitable for limited testing.
 4. Vercel: add a GitHub Login Connection and connect `Sabqi29/spmflow.ai` to the existing `spmflow-demo` project so future pushes deploy automatically. The current production deployment already works.
 5. Vercel environment variables are optional because browser-safe defaults are present. If set, use only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; never add the service-role key.
