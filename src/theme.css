@@ -1224,8 +1224,9 @@ textarea:focus-visible {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-template-areas:
     "hero hero hero hero hero hero hero hero hero mission mission mission"
-    "stats stats stats stats stats stats resume resume resume subj subj subj"
-    "tutor tutor tutor tutor work work work work board board board board";
+    "stats stats stats stats stats stats resume resume resume guide guide guide"
+    "tutor tutor tutor tutor work work work work board board board board"
+    "subj subj subj subj subj subj subj subj subj subj subj subj";
 }
 .home-hero {
   grid-area: hero;
@@ -1315,6 +1316,10 @@ textarea:focus-visible {
 .home-subjects {
   grid-area: subj;
 }
+.home-guide {
+  grid-area: guide;
+  background: var(--sun-soft);
+}
 .home-bento h3 {
   display: flex;
   align-items: center;
@@ -1392,13 +1397,13 @@ a.chip:hover {
 @media (max-width: 1100px) {
   .home-bento {
     grid-template-columns: 1fr 1fr;
-    grid-template-areas: "hero hero" "mission resume" "stats stats" "tutor work" "board subj";
+    grid-template-areas: "hero hero" "mission resume" "stats stats" "guide work" "tutor board" "subj subj";
   }
 }
 @media (max-width: 760px) {
   .home-bento {
     grid-template-columns: 1fr;
-    grid-template-areas: "hero" "mission" "stats" "resume" "work" "tutor" "board" "subj";
+    grid-template-areas: "hero" "mission" "stats" "resume" "guide" "work" "tutor" "board" "subj";
   }
   .home-hero {
     grid-template-columns: 1fr;
@@ -1701,5 +1706,119 @@ a.chip:hover {
   .assign-mode,
   .assign-insights .kpis {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Panduan: personal study guide */
+.guide-focus {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.guide-focus-card {
+  border: 2px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--red);
+}
+.guide-focus-card:first-child {
+  background: var(--sun-soft);
+}
+.guide-focus-card h3 {
+  margin: 6px 0;
+  font: 700 20px "Bricolage Grotesque", sans-serif;
+}
+.guide-focus-card p {
+  margin: 0;
+  color: var(--muted);
+}
+.guide-focus-card small {
+  font-weight: 700;
+  color: var(--red);
+}
+.guide-rank {
+  position: absolute;
+  top: -14px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--sun);
+  font: 400 18px "Titan One", sans-serif;
+}
+.guide-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 48px 56px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--dash);
+  font-size: 14px;
+}
+.guide-chapter b {
+  color: var(--red);
+  margin-right: 4px;
+}
+.guide-track {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--peach);
+  border: 1.5px solid var(--ink);
+  overflow: hidden;
+}
+.guide-track i {
+  display: block;
+  height: 100%;
+}
+.guide-track i.low {
+  background: var(--red);
+}
+.guide-track i.mid {
+  background: var(--sun);
+}
+.guide-track i.high {
+  background: var(--ok);
+}
+.guide-pct {
+  text-align: right;
+}
+.guide-row small {
+  color: var(--muted);
+}
+.seg-mini {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+}
+.seg-mini button {
+  border: 0;
+  background: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.seg-mini button[aria-pressed="true"] {
+  background: var(--ink);
+  color: #fff;
+}
+.leader-row.mine {
+  background: var(--sun-soft);
+  border-radius: 12px;
+}
+@media (max-width: 760px) {
+  .guide-focus {
+    grid-template-columns: 1fr;
+  }
+  .guide-row {
+    grid-template-columns: minmax(0, 1fr) 60px 44px;
+  }
+  .guide-row small {
+    display: none;
   }
 }

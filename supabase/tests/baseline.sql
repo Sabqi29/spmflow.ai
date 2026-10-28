@@ -114,6 +114,6 @@ grant select, insert on public.quiz_results to authenticated;
 
 -- Referenced by question_references.
 create table public.textbooks (id text primary key, subject text not null default 'sejarah', form_level smallint not null, title text not null, storage_path text not null default '', printed_page_offset smallint not null default 0, pdf_page_count smallint, created_at timestamptz not null default now());
-create table public.rag_chunks (id text primary key, form text not null, chapter_id integer, chapter_title text, section_title text, current_page integer, page_start integer, page_end integer, content text not null default '');
+create table public.rag_chunks (id text primary key, form text not null, chapter_id integer, chapter_title text, section_title text, current_page integer, page_start integer, page_end integer, content text not null default '', search_document tsvector generated always as (to_tsvector('simple', coalesce(chapter_title, '') || ' ' || coalesce(section_title, '') || ' ' || content)) stored);
 alter table public.textbooks enable row level security;
 alter table public.rag_chunks enable row level security;

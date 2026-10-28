@@ -2,7 +2,7 @@
 \set ON_ERROR_STOP on
 set client_min_messages = warning;
 truncate auth.users cascade;
-truncate public.questions, public.question_sets cascade;
+truncate public.questions, public.question_sets, public.rag_chunks, public.textbooks cascade;
 
 insert into auth.users(id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'student@test'),
