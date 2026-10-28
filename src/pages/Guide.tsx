@@ -1,0 +1,21 @@
+import {useEffect,useMemo,useState} from 'react';
+import {BookOpen,Compass,Sparkles,Target} from 'lucide-react';
+import {Link} from 'react-router-dom';
+import {supabase} from '../lib/api';
+import {useApp} from '../lib/context';
+import {ChapterStat,focusChapters} from '../lib/guide';
+
+export default function Guide(){
+ const {t,user,setAuthMode,setAuthOpen}=useApp();const [rows,setRows]=useState<ChapterStat[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[form,setForm]=useState<4|5|0>(0);
+ useEffect(()=>{if(!user){setLoading(false);return}let active=true;supabase.rpc('get_study_guide').then(({data,error})=>{if(!active)return;if(error)setError(error.message);else setRows((data||[]) as ChapterStat[]);setLoading(false)});return()=>{active=false}},[user]);
+ const focus=useMemo(()=>focusChapters(rows,3),[rows]);
+ const shown=rows.filter(row=>!form||row.form_level===form);
+ if(!user)return <main className="feature-shell"><section className="feature-empty"><Compass/><h1>{t('Panduan belajar peribadi','Your personal study guide')}</h1><p>{t('Log masuk dan jawab beberapa set latihan. Kami akan tunjukkan bab mana perlu difokuskan.','Log in and answer a few practice sets. We’ll show which chapters to focus on.')}</p><button className="button" onClick={()=>{setAuthMode('login');setAuthOpen(true)}}>{t('Log masuk','Log in')}</button></section></main>;
+ return <main className="feature-shell guide-page"><div className="feature-heading"><div><span className="eyebrow">{t('PANDUAN BELAJAR','STUDY GUIDE')}</span><h1>{t('Fokus pada bab yang paling membantu.','Focus where it helps most.')}</h1></div><Link className="button" to="/belajar">{t('Buka buku teks','Open the textbook')} <BookOpen size={17}/></Link></div>
+ {loading?<p className="feature-loading">{t('Menyusun panduan anda…','Building your guide…')}</p>:error?<p className="error-text" role="alert">{error}</p>:<>
+ <section className="guide-focus">{focus.length?focus.map((row,index)=><article key={`${row.form_level}-${row.chapter_id}`} className="bento-card guide-focus-card"><span className="guide-rank">{index+1}</span><small>{t(`Tingkatan ${row.form_level} · Bab ${row.chapter_id}`,`Form ${row.form_level} · Chapter ${row.chapter_id}`)}</small><h3>{row.chapter_title}</h3><p>{row.answered?t(`${row.accuracy}% betul daripada ${row.answered} soalan`,`${row.accuracy}% correct over ${row.answered} questions`):t('Belum dicuba lagi','Not tried yet')}</p><div className="chip-row"><Link className="chip" to={`/belajar?form=${row.form_level}&page=${row.page_start}`}><BookOpen size={14}/>&nbsp;{t('Baca bab','Read chapter')}</Link><Link className="chip" to={`/belajar?q=${encodeURIComponent(t(`Ringkaskan Bab ${row.chapter_id} Tingkatan ${row.form_level}: ${row.chapter_title}`,`Summarise Form ${row.form_level} Chapter ${row.chapter_id}: ${row.chapter_title}`))}`}><Sparkles size={14}/>&nbsp;{t('Ringkasan AI','AI summary')}</Link></div></article>):<p className="muted-copy">{t('Jawab satu set latihan untuk mendapatkan cadangan.','Answer a practice set to get recommendations.')}</p>}</section>
+ <section className="feature-card guide-table"><div className="card-heading"><div><span className="eyebrow">{t('SEMUA BAB','ALL CHAPTERS')}</span><h2>{t('Kekuatan mengikut bab','Strength by chapter')}</h2></div><div className="seg-mini">{([0,4,5] as const).map(value=><button key={value} aria-pressed={form===value} onClick={()=>setForm(value)}>{value?`T${value}`:t('Semua','All')}</button>)}</div></div>
+ {shown.map(row=><div className="guide-row" key={`${row.form_level}-${row.chapter_id}`}><span className="guide-chapter"><b>T{row.form_level} · {row.chapter_id}</b> {row.chapter_title}</span><span className="guide-track" aria-hidden="true"><i style={{width:`${row.accuracy??0}%`}} className={row.accuracy===null?'':row.accuracy<50?'low':row.accuracy<75?'mid':'high'}/></span><b className="guide-pct">{row.accuracy===null?'—':`${row.accuracy}%`}</b><small>{row.answered} {t('soalan','qs')}</small></div>)}
+ <p className="privacy-note"><Target size={13}/> {t('Dikira daripada latihan yang jawapannya sudah didedahkan. Tag bab dijana oleh AI dan sedang disemak.','Based on practice whose answers are released. Chapter tags are AI-generated and being reviewed.')}</p></section></>}
+ </main>;
+}

@@ -82,7 +82,7 @@ export default function Bookshelf(){
   <div className="shelf-zone">
    <div className="shelf-scroll">
     <div className="shelf-row" ref={shelf} role="list" aria-label={t('Rak subjek SPM','SPM subject shelf')} onMouseLeave={()=>fine&&pull(0)}>
-     <svg className="shelf-deco" width="92" height="150" viewBox="0 0 92 150" aria-hidden="true"><g stroke="#24201d" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"><path d="M30 148 V96 h32 v52" fill="#fbf8f4"/><path d="M30 108 h32" fill="none"/><path d="M46 96 C34 74 18 70 10 52 C26 54 40 66 46 96 C48 66 60 44 82 38 C76 62 60 74 46 96" fill="#5e7f3c"/><path d="M46 96 C44 70 46 40 40 18 C54 34 54 66 46 96" fill="#2f6b4f"/></g></svg>
+     <svg className="shelf-deco" width="92" height="150" viewBox="0 0 92 150" aria-hidden="true"><g stroke="#141a3d" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"><path d="M30 148 V96 h32 v52" fill="#fbfbff"/><path d="M30 108 h32" fill="none"/><path d="M46 96 C34 74 18 70 10 52 C26 54 40 66 46 96 C48 66 60 44 82 38 C76 62 60 74 46 96" fill="#5e7f3c"/><path d="M46 96 C44 70 46 40 40 18 C54 34 54 66 46 96" fill="#2f6b4f"/></g></svg>
      {books.map((b,i)=>{
       const pulled=i===selected;
       const cls=['shelf-book',b.live?'':'soon',b.light?'light':'',pulled?'pulled':'',i===selected-1?'lean-l':'',i===selected+1?'lean-r':''].filter(Boolean).join(' ');
@@ -94,7 +94,7 @@ export default function Bookshelf(){
        <span className="spine"><Glyph d={glyphs[b.glyph]}/><span className="spine-title">{t(b.bm,b.en)}</span><span className="spine-form">T4·T5</span></span>
        {b.live?<span className="ribbon" aria-hidden="true"/>:<span className="sticker" aria-hidden="true">{t('Akan datang','Soon')}</span>}
       </button>})}
-     <svg className="shelf-deco" width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><g stroke="#24201d" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"><rect x="6" y="122" width="96" height="26" rx="2" fill="#efe9e3"/><rect x="12" y="98" width="88" height="24" rx="2" fill="#d6c2ad"/><rect x="2" y="76" width="92" height="22" rx="2" fill="#fbf8f4"/><path d="M10 87 h50M18 110 h40M14 135 h56" strokeWidth="2"/><path d="M112 148 V108 h30 v40 z" fill="#c2342a"/><path d="M118 108 L114 54 M127 108 L130 46 M136 108 L146 62" fill="none"/><path d="M130 46 l-3 -8 l6 0 z" fill="#24201d"/></g></svg>
+     <svg className="shelf-deco" width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><g stroke="#141a3d" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"><rect x="6" y="122" width="96" height="26" rx="2" fill="#dfe3f7"/><rect x="12" y="98" width="88" height="24" rx="2" fill="#ffc53d"/><rect x="2" y="76" width="92" height="22" rx="2" fill="#fbfbff"/><path d="M10 87 h50M18 110 h40M14 135 h56" strokeWidth="2"/><path d="M112 148 V108 h30 v40 z" fill="#c2342a"/><path d="M118 108 L114 54 M127 108 L130 46 M136 108 L146 62" fill="none"/><path d="M130 46 l-3 -8 l6 0 z" fill="#141a3d"/></g></svg>
     </div>
    </div>
    <div className="shelf-plank" aria-hidden="true"/>

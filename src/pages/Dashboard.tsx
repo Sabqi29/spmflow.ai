@@ -3,16 +3,9 @@ import {BarChart3,BookOpen,Flame,MessageCircle,Target,Trophy} from 'lucide-react
 import {Link} from 'react-router-dom';
 import {supabase} from '../lib/api';
 import {useApp} from '../lib/context';
+import {Result,dayKey,summarize} from '../lib/progress';
 
-type Result={score:number;total:number;created_at:string};
 type Leader={display_name:string;school_name:string;correct:number;answered:number;accuracy:number};
-
-function dayKey(value:Date|string){const date=new Date(value);return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`}
-function calculateStreak(results:Result[]){
- const days=new Set(results.map(result=>dayKey(result.created_at)));const cursor=new Date();
- if(!days.has(dayKey(cursor)))cursor.setDate(cursor.getDate()-1);
- let streak=0;while(days.has(dayKey(cursor))){streak+=1;cursor.setDate(cursor.getDate()-1)}return streak;
-}
 
 export default function Dashboard(){
  const {t,user,setAuthMode,setAuthOpen}=useApp();const [results,setResults]=useState<Result[]>([]),[chatCount,setChatCount]=useState(0),[leaders,setLeaders]=useState<Leader[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
@@ -21,7 +14,7 @@ export default function Dashboard(){
   supabase.from('chat_sessions').select('id',{count:'exact',head:true}),
   supabase.rpc('get_weekly_leaderboard')
  ]);if(!active)return;const issue=quiz.error||chats.error||board.error;if(issue)setError(issue.message);else{setResults((quiz.data||[]) as Result[]);setChatCount(chats.count||0);setLeaders((board.data||[]) as Leader[])}setLoading(false)})();return()=>{active=false}},[user]);
- const stats=useMemo(()=>{const answered=results.reduce((sum,row)=>sum+row.total,0),correct=results.reduce((sum,row)=>sum+row.score,0);return{answered,correct,accuracy:answered?Math.round(correct/answered*100):0,streak:calculateStreak(results)}},[results]);
+ const stats=useMemo(()=>summarize(results),[results]);
  const week=useMemo(()=>Array.from({length:7},(_,index)=>{const date=new Date();date.setDate(date.getDate()-(6-index));const rows=results.filter(row=>dayKey(row.created_at)===dayKey(date));return{label:new Intl.DateTimeFormat(document.documentElement.lang,{weekday:'short'}).format(date),value:rows.reduce((sum,row)=>sum+row.total,0)}}),[results]);
  if(!user)return <main className="feature-shell"><section className="feature-empty"><BarChart3/><h1>{t('Dashboard kemajuan anda','Your progress dashboard')}</h1><p>{t('Log masuk untuk menyimpan keputusan, membina streak dan menyertai leaderboard mingguan.','Sign in to save results, build a streak and join the weekly leaderboard.')}</p><button className="button" onClick={()=>{setAuthMode('login');setAuthOpen(true)}}>{t('Log masuk','Log in')}</button></section></main>;
  return <main className="feature-shell"><div className="feature-heading"><div><span className="eyebrow">{t('KEMAJUAN SAYA','MY PROGRESS')}</span><h1>{t('Sedikit demi sedikit, semakin yakin.','Small steps, growing confidence.')}</h1></div><Link className="button" to="/belajar">{t('Sambung belajar','Continue studying')} <BookOpen size={17}/></Link></div>
