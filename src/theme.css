@@ -1972,3 +1972,15 @@ a.chip:hover {
 .ai-usage td:first-child {
   text-align: left;
 }
+
+/* Tutor answers from the internet are blue and labelled, so they never pass for the yellow textbook citations. */
+.message.web-answer { background: #eef4fb; border-color: #cfdcec; }
+.web-notice { display: flex; align-items: flex-start; gap: 7px; margin: 8px 0 4px; padding: 8px 10px; border-radius: 8px; background: #dde9f7; color: #22476e; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.web-notice svg { flex: none; margin-top: 2px; }
+.out-of-syllabus { display: inline-block; margin-top: 8px; padding: 3px 9px; border-radius: 20px; background: var(--sun-soft); color: #7a5200; font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.web-sources { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 10px; }
+.web-sources small { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #4f6d8d; }
+.web-citation { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 6px 9px; border-radius: 6px; background: #dfeaf6; color: #26527d; font-size: 11px; overflow-wrap: anywhere; }
+.web-citation:hover { background: #d1e1f2; }
+.web-searches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.web-searches a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid #cbd9e8; border-radius: 20px; background: #fff; color: #3d6087; font-size: 11px; }
