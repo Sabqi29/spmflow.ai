@@ -1865,3 +1865,110 @@ a.chip:hover {
   padding: 0 10px;
   max-width: 100%;
 }
+
+/* Question set: Locked In or Normal mode */
+.set-start {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.set-start .set-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+.set-status.locked {
+  background: var(--ink, #1d1d37);
+  color: #fff;
+}
+.set-quiz-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.set-quiz-head .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.set-quiz h2 {
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+.quiz-options button.picked {
+  border-color: var(--red, #e8482c);
+  box-shadow: inset 0 0 0 1px var(--red, #e8482c);
+}
+.set-quiz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Draggable divider between textbook and tutor */
+.study-grid.resizable {
+  gap: 0;
+}
+.split-handle {
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+.split-handle span {
+  width: 6px;
+  height: 56px;
+  border-radius: 999px;
+  background: #e2bfae;
+  transition: background 0.15s, height 0.15s;
+}
+.split-handle:hover span,
+.split-handle:focus-visible span,
+.split-handle:active span {
+  background: var(--red, #e8482c);
+  height: 96px;
+}
+@media (max-width: 760px) {
+  .split-handle {
+    display: none;
+  }
+}
+.set-quiz-wrap:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.ai-usage {
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.ai-usage table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.ai-usage th,
+.ai-usage td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px dashed #e2bfae;
+  white-space: nowrap;
+}
+.ai-usage th:first-child,
+.ai-usage td:first-child {
+  text-align: left;
+}

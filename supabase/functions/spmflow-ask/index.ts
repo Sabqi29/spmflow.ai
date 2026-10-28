@@ -1,4 +1,5 @@
 import { withSupabase } from "npm:@supabase/server";
+import { cacheKey, estimateCost, isCacheable, parseTask, scrubPersonalInfo, taskPrompt, type Task } from "./gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,17 +15,20 @@ const securedHandler = withSupabase(
       return json({ error: "Method not allowed" }, 405);
     }
 
-    let body: { question?: unknown; form_level?: unknown; subject?: unknown; practice?: { attempt_id?: unknown; question_id?: unknown } };
+    let body: { question?: unknown; form_level?: unknown; subject?: unknown; task_type?: unknown; practice?: { attempt_id?: unknown; question_id?: unknown } };
     try {
       body = await req.json();
     } catch {
       return json({ error: "Request body must be valid JSON" }, 400);
     }
 
-    const question = typeof body.question === "string" ? body.question.trim() : "";
-    if (!question || question.length > 1500) {
+    const started = Date.now();
+    const rawQuestion = typeof body.question === "string" ? body.question.trim() : "";
+    if (!rawQuestion || rawQuestion.length > 1500) {
       return json({ error: "Question must contain 1 to 1500 characters" }, 400);
     }
+    // Personal details never reach the model, the cache or the logs.
+    const question = scrubPersonalInfo(rawQuestion);
 
     if (body.subject && body.subject !== 'sejarah') return json({error:'Only Sejarah is available'},400);
     let formLevel = Number(body.form_level ?? 4);
@@ -47,6 +51,25 @@ const securedHandler = withSupabase(
       if(!practice.submitted&&practice.mode==='locked')return json({error:'Tutor AI ditutup semasa Locked In. Hantar latihan dahulu.',code:'locked_in'},423);
       if(practice.form_level&&[4,5].includes(practice.form_level))formLevel=practice.form_level;
     }
+    const task = parseTask(body.task_type, !!practice);
+    const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash-lite";
+    const usage = (entry: { model: string | null; cacheHit?: boolean; degraded?: boolean; promptTokens?: number | null; outputTokens?: number | null }) =>
+      ctx.supabaseAdmin.rpc("log_ai_usage", {
+        task_name: task, model_name: entry.model, was_cache_hit: entry.cacheHit ?? false, was_degraded: entry.degraded ?? false, guest: !userId,
+        prompt_count: entry.promptTokens ?? null, output_count: entry.outputTokens ?? null, elapsed_ms: Date.now() - started,
+        cost: entry.model && !entry.cacheHit ? estimateCost(entry.promptTokens ?? null, entry.outputTokens ?? null, price("GEMINI_INPUT_USD_PER_M", 0.1), price("GEMINI_OUTPUT_USD_PER_M", 0.4)) : 0,
+      }).then(({ error }: { error: { message: string } | null }) => { if (error) console.error("Usage log failed", error.message); });
+
+    // Same general question, same form: reuse the earlier AI answer without a model call or a quota charge.
+    const key = isCacheable(task, !!practice) ? await cacheKey(task, formLevel, question, model) : null;
+    if (key) {
+      const { data: cached } = await ctx.supabaseAdmin.rpc("ai_cache_get", { target_key: key });
+      if (cached) {
+        await usage({ model, cacheHit: true });
+        return json({ ...cached, query: question, cached: true, released: null });
+      }
+    }
+
     const ip = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const bytes = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}:${userId||ip}`));
     const actor = Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -81,6 +104,7 @@ const securedHandler = withSupabase(
       .slice(0,5);
 
     if (!chunks?.length) {
+      await usage({ model: null, degraded: true });
       return json({
         text: "Maaf, saya belum mempunyai maklumat buku teks yang mencukupi untuk menjawab soalan ini.",
         source: null,
@@ -91,13 +115,16 @@ const securedHandler = withSupabase(
     }
 
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
-    const generated = geminiKey
-      ? await generateWithGemini(question, chunks, geminiKey, practice)
+    // Site-wide daily cap on model calls; past it, students still get the extractive textbook answer.
+    const dailyLimit = Number(Deno.env.get("AI_DAILY_LIMIT") ?? 3000);
+    const { data: callsToday } = geminiKey ? await ctx.supabaseAdmin.rpc("ai_calls_today") : { data: 0 };
+    const generated = geminiKey && Number(callsToday ?? 0) < dailyLimit
+      ? await generateWithGemini(question, chunks, geminiKey, practice, task, model)
       : null;
     const selectedIndex = generated?.sourceIndex ?? pickExtractiveIndex(searchText, chunks);
     const selected = chunks[Math.min(selectedIndex, chunks.length - 1)];
 
-    return json({
+    const result = {
       text: generated?.text ?? extractiveAnswer(selected.content, searchText),
       source: {
         chapter_title: selected.chapter_title,
@@ -112,9 +139,20 @@ const securedHandler = withSupabase(
       query: question,
       degraded: !generated,
       released: practice?.released ?? null,
-    });
+    };
+    await usage({ model: generated ? model : null, degraded: !generated, promptTokens: generated?.promptTokens, outputTokens: generated?.outputTokens });
+    if (key && generated) {
+      const { error: cacheError } = await ctx.supabaseAdmin.rpc("ai_cache_put", { target_key: key, task_name: task, level: formLevel, payload: { text: result.text, source: result.source, degraded: false }, model_name: model });
+      if (cacheError) console.error("Cache write failed", cacheError.message);
+    }
+    return json(result);
   },
 );
+
+function price(name: string, fallback: number) {
+  const value = Number(Deno.env.get(name));
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 export default {
   fetch(req: Request) {
@@ -210,6 +248,8 @@ async function generateWithGemini(
   chunks: Array<Record<string, unknown>>,
   apiKey: string,
   practice: PracticeContext | null,
+  task: Task,
+  model: string,
 ) {
   const context = chunks
     .map((chunk, index) =>
@@ -217,11 +257,10 @@ async function generateWithGemini(
       `(m.s. ${chunk.page_start}-${chunk.page_end})\n${chunk.content}`
     )
     .join("\n\n");
-  const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash-lite";
   const prompt = `You are an SPM Sejarah tutor. Use the supplied textbook context as the primary basis. ` +
     `Answer clearly and concisely in casual Bahasa Melayu unless the student asks in English. ` +
     `Do not invent facts. End with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
-    `Konteks:\n${context}\n\n${practicePrompt(practice)}Soalan pelajar:\n${question}\n\nJawapan:`;
+    `Konteks:\n${context}\n\n${practicePrompt(practice)}${taskPrompt(task)}Soalan pelajar:\n${question}\n\nJawapan:`;
 
   try {
     const response = await fetch(
@@ -239,7 +278,7 @@ async function generateWithGemini(
       },
     );
     if (!response.ok) {
-      console.error("Gemini generation failed", response.status);
+      console.error("Gemini generation failed", response.status, (await response.text()).slice(0, 300));
       return null;
     }
     const payload = await response.json();
@@ -248,9 +287,12 @@ async function generateWithGemini(
     const citation = raw.match(/RUJUKAN:\s*\[?(?:Source\s*)?(\d+)\]?/i);
     const sourceIndex = citation ? Math.max(0, Number(citation[1]) - 1) : 0;
     const text = raw.replace(/\n?RUJUKAN:.*$/im, "").trim();
-    return { text, sourceIndex };
+    const promptTokens = Number(payload?.usageMetadata?.promptTokenCount) || null;
+    const outputTokens = Number(payload?.usageMetadata?.candidatesTokenCount) || null;
+    return { text, sourceIndex, promptTokens, outputTokens };
   } catch (error) {
-    console.error("Gemini request failed", error instanceof Error ? error.name : "UnknownError");
+    // The message (never the key) tells a bad key value apart from a network failure.
+    console.error("Gemini request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
     return null;
   }
 }

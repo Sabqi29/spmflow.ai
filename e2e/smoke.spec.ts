@@ -12,7 +12,7 @@ test('study space opens the Form 4 textbook',async({page})=>{
  await page.goto('/belajar');
  await expect(page.locator('.rack-book.on')).toContainText(/4/);
  await expect(page.getByText('Buku teks belum dapat dibuka.')).toHaveCount(0,{timeout:30_000});
- await expect(page.locator('.textbook-pane canvas, .textbook-pane img').first()).toBeVisible({timeout:30_000});
+ await expect(page.locator('.textbook-pane canvas:visible, .textbook-pane img:visible').first()).toBeVisible({timeout:30_000});
 });
 
 test('guest practice loads questions from the database and grades on the server',async({page})=>{
@@ -23,10 +23,11 @@ test('guest practice loads questions from the database and grades on the server'
  await choices.first().click();
  page.on('dialog',dialog=>dialog.accept());
  const nav=page.locator('.question-nav button');
+ const total=await nav.count();
  await nav.last().click();
  await page.getByRole('button',{name:/Hantar jawapan|Submit answers/}).click();
  await expect(page.locator('.locked-results h1')).toContainText('/');
- await expect(page.locator('.answer-review article')).toHaveCount(await nav.count());
+ await expect(page.locator('.answer-review article')).toHaveCount(total);
  await expect(page.locator('.review-options li.is-answer').first()).toBeVisible();
 });
 
