@@ -13,31 +13,36 @@ where length(w) > 4 and w not in (
   'menunjukkan','berkaitan','betul','benar','tidak','mereka','negara','tujuan','tindakan','peranan','kesan','faktor')
 group by q.id;
 
+-- Top five matching chunks per question; rank computed once per pair.
 create temp table question_matches as
-select t.id as question_id, c.id as chunk_id, (regexp_replace(c.form, '\D', '', 'g'))::smallint as form_level, c.chapter_id,
-  c.current_page, c.section_title, ts_rank_cd(c.search_document, to_tsquery('simple', t.query)) as rank,
-  row_number() over (partition by t.id order by ts_rank_cd(c.search_document, to_tsquery('simple', t.query)) desc, c.id) as n
-from question_terms t
-join public.rag_chunks c on c.search_document @@ to_tsquery('simple', t.query);
+select * from (
+  select t.id as question_id, c.id as chunk_id, (regexp_replace(c.form, '\D', '', 'g'))::smallint as form_level, c.chapter_id,
+    c.current_page, c.section_title, x.rank, row_number() over (partition by t.id order by x.rank desc, c.id) as n
+  from question_terms t
+  join public.rag_chunks c on c.search_document @@ to_tsquery('simple', t.query)
+  cross join lateral (select ts_rank_cd(c.search_document, to_tsquery('simple', t.query)) as rank) x
+) m where n <= 5;
 
+-- The chapter holding most of that rank, with its best chunk as the suggested page.
 create temp table question_chapter as
-select distinct on (question_id) question_id, form_level, chapter_id,
-  sum(rank) over (partition by question_id, form_level, chapter_id) / nullif(sum(rank) over (partition by question_id), 0) as share
-from question_matches where n <= 5
+select distinct on (question_id) * from (
+  select question_id, form_level, chapter_id,
+    sum(rank) / nullif(sum(sum(rank)) over (partition by question_id), 0) as share,
+    (array_agg(chunk_id order by rank desc))[1] as chunk_id,
+    (array_agg(current_page order by rank desc))[1] as current_page,
+    (array_agg(section_title order by rank desc))[1] as section_title
+  from question_matches group by 1, 2, 3
+) s
 order by question_id, share desc, form_level, chapter_id;
 
 delete from public.question_references where mapping_source = 'ai' and not verified;
 
 insert into public.question_references(question_id, textbook_id, rag_chunk_id, chapter_id, printed_page, section_title, confidence, mapping_source)
-select ch.question_id, 'sejarah-t' || ch.form_level, m.chunk_id, ch.chapter_id, m.current_page, coalesce(m.section_title, ''), round(ch.share::numeric, 2), 'ai'
+select ch.question_id, 'sejarah-t' || ch.form_level, ch.chunk_id, ch.chapter_id, ch.current_page, coalesce(ch.section_title, ''), round(ch.share::numeric, 2), 'ai'
 from question_chapter ch
-join lateral (
-  select chunk_id, current_page, section_title from question_matches m
-  where m.question_id = ch.question_id and m.form_level = ch.form_level and m.chapter_id = ch.chapter_id
-  order by rank desc limit 1
-) m on true
 where not exists (select 1 from public.question_references r where r.question_id = ch.question_id and r.verified);
 
 update public.questions q set form_level = ch.form_level, chapter_id = ch.chapter_id
-from question_chapter ch where ch.question_id = q.id and ch.share >= 0.5;
+from question_chapter ch where ch.question_id = q.id and ch.share >= 0.5
+  and not exists (select 1 from public.question_references r where r.question_id = q.id and r.verified);
 drop table question_terms, question_matches, question_chapter;

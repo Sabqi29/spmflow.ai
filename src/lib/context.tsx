@@ -1,15 +1,16 @@
 import {createContext,useContext,useEffect,useState,ReactNode} from 'react';
 import type {User} from '@supabase/supabase-js';
 import {supabase} from './api';
-type Context={lang:'bm'|'en';setLang:(l:'bm'|'en')=>void;t:(bm:string,en:string)=>string;user:User|null;authReady:boolean;authOpen:boolean;setAuthOpen:(open:boolean)=>void;authMode:'login'|'signup'|'reset'|'recovery';setAuthMode:(mode:'login'|'signup'|'reset'|'recovery')=>void};
+type Context={lang:'bm'|'en';setLang:(l:'bm'|'en')=>void;t:(bm:string,en:string)=>string;user:User|null;authReady:boolean;isAdmin:boolean;authOpen:boolean;setAuthOpen:(open:boolean)=>void;authMode:'login'|'signup'|'reset'|'recovery';setAuthMode:(mode:'login'|'signup'|'reset'|'recovery')=>void};
 const AppContext=createContext<Context>(null!);
 export function AppProvider({children}:{children:ReactNode}){
  const [lang,setLang]=useState<'bm'|'en'>(()=>localStorage.getItem('spmflow-language')==='en'?'en':'bm');
- const [user,setUser]=useState<User|null>(null);const [authReady,setAuthReady]=useState(false);const [authOpen,setAuthOpen]=useState(false);const [authMode,setAuthMode]=useState<Context['authMode']>('signup');
+ const [user,setUser]=useState<User|null>(null);const [authReady,setAuthReady]=useState(false);const [isAdmin,setIsAdmin]=useState(false);const [authOpen,setAuthOpen]=useState(false);const [authMode,setAuthMode]=useState<Context['authMode']>('signup');
  useEffect(()=>{document.documentElement.lang=lang==='bm'?'ms':'en';localStorage.setItem('spmflow-language',lang)},[lang]);
  useEffect(()=>{supabase.auth.getSession().then(({data})=>{setUser(data.session?.user||null);setAuthReady(true)});const {data}=supabase.auth.onAuthStateChange((event,session)=>{setUser(session?.user||null);if(event==='PASSWORD_RECOVERY'){setAuthMode('recovery');setAuthOpen(true);}});return()=>data.subscription.unsubscribe()},[]);
  useEffect(()=>{if(!user)return;const metadata=user.user_metadata;supabase.from('profiles').upsert({id:user.id,display_name:String(metadata.display_name||'').slice(0,60),school_name:String(metadata.school_name||'').slice(0,120),school_state:String(metadata.school_state||'').slice(0,32),form_level:[4,5].includes(Number(metadata.form_level))?Number(metadata.form_level):4,leaderboard_opt_in:metadata.leaderboard_opt_in===true},{onConflict:'id',ignoreDuplicates:true}).then(()=>{})},[user]);
- return <AppContext.Provider value={{lang,setLang,t:(bm,en)=>lang==='bm'?bm:en,user,authReady,authOpen,setAuthOpen,authMode,setAuthMode}}>{children}</AppContext.Provider>;
+ useEffect(()=>{if(!user){setIsAdmin(false);return}let active=true;supabase.rpc('is_app_admin').then(({data})=>{if(active)setIsAdmin(data===true)});return()=>{active=false}},[user]);
+ return <AppContext.Provider value={{lang,setLang,t:(bm,en)=>lang==='bm'?bm:en,user,authReady,isAdmin,authOpen,setAuthOpen,authMode,setAuthMode}}>{children}</AppContext.Provider>;
 }
 // This hook intentionally shares the provider module; it is not a component.
 // eslint-disable-next-line react-refresh/only-export-components
