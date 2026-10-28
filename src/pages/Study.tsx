@@ -2,7 +2,7 @@ import {lazy,Suspense,useState,useEffect,useRef} from 'react';
 import {BookOpen,Sparkles,Send,Plus,History,Trash2,ArrowRight,Check,RotateCcw,Target,Layers,Database,Lock} from 'lucide-react';
 import {useApp} from '../lib/context';
 import {Link,useSearchParams} from 'react-router-dom';
-import {askTutor,supabase,saveConversation,Message,Source} from '../lib/api';
+import {askTutor,supabase,saveConversation,Message,Source,TutorTask} from '../lib/api';
 import {chapters,quizzes} from '../lib/demo';
 import {questionSets} from '../lib/questionBank';
 import SetQuiz from '../components/SetQuiz';
@@ -24,16 +24,16 @@ export default function Study(){
  async function openSession(id:string,level:number){setHistoryError('');const {data,error}=await supabase.from('chat_messages').select('id,role,content,sources,degraded').eq('session_id',id).order('created_at');if(error){setHistoryError(t('Perbualan gagal dimuatkan.','Conversation could not be loaded.'));return}setMessages(data as Message[]);setSessionId(id);setForm(level);setShowHistory(false);setTab('ai')}
  async function deleteSession(id:string){if(!window.confirm(t('Padam perbualan ini secara kekal?','Permanently delete this conversation?')))return;const {error}=await supabase.from('chat_sessions').delete().eq('id',id);if(error){setHistoryError(t('Tidak dapat dipadam. Cuba lagi.','Could not delete. Try again.'));return}setHistory(h=>h.filter(x=>x.id!==id));if(sessionId===id){setSessionId(null);setMessages([])}}
  function newChat(){if(inFlight.current)return;setPractice(null);setMessages([]);setSessionId(null);setError('');setSaveError('');setSource(null);setShowHistory(false)}
- async function send(text=question,retry=false){const q=text.trim();if(!q||inFlight.current)return;inFlight.current=true;setBusy(true);setError('');setSaveError('');setLastQuestion(q);setQuestion('');setShowHistory(false);const currentOwner=user?.id;
+ async function send(text=question,retry=false,task?:TutorTask){const q=text.trim();if(!q||inFlight.current)return;inFlight.current=true;setBusy(true);setError('');setSaveError('');setLastQuestion(q);setQuestion('');setShowHistory(false);const currentOwner=user?.id;
  if(!retry)setMessages(m=>[...m,{id:crypto.randomUUID(),role:'user',content:q}]);
- try{const context=practice?{attempt_id:practice.attempt_id,question_id:practice.question_id}:null;const response=await askTutor(q,form,context);if(owner.current!==currentOwner)return;const answer:Message={id:crypto.randomUUID(),role:'assistant',content:response.text,sources:response.sources,degraded:response.degraded};setMessages(m=>[...m,answer]);if(user){try{const id=await saveConversation(user.id,sessionId,q,answer,form,context);setSessionId(id)}catch{setSaveError(t('Jawapan diterima, tetapi sejarah belum disimpan.','Answer received, but history could not be saved.'))}}}
+ try{const context=practice?{attempt_id:practice.attempt_id,question_id:practice.question_id}:null;const response=await askTutor(q,form,context,task);if(owner.current!==currentOwner)return;const answer:Message={id:crypto.randomUUID(),role:'assistant',content:response.text,sources:response.sources,degraded:response.degraded};setMessages(m=>[...m,answer]);if(user){try{const id=await saveConversation(user.id,sessionId,q,answer,form,context);setSessionId(id)}catch{setSaveError(t('Jawapan diterima, tetapi sejarah belum disimpan.','Answer received, but history could not be saved.'))}}}
  catch(err){setError(err instanceof Error?err.message:t('Maaf, berlaku ralat.','Sorry, something went wrong.'))}finally{setBusy(false);inFlight.current=false}}
  useEffect(()=>{if([4,5].includes(formParam))setForm(formParam);if(pageParam>0){setPage(pageParam);setMobile('book')}},[formParam,pageParam]);
  useEffect(()=>{if(!attemptParam||!questionParam){setPractice(null);return}let active=true;supabase.from('questions').select('id,question_number,stem').eq('id',questionParam).single().then(({data})=>{if(active&&data){setPractice({attempt_id:attemptParam,question_id:data.id,number:data.question_number,stem:data.stem});setTab('ai');setMobile('tutor');setMessages([]);setSessionId(null)}});return()=>{active=false}},[attemptParam,questionParam]);
  useEffect(()=>{if(askParam&&asked.current!==askParam){asked.current=askParam;setTab('ai');setMobile('tutor');send(askParam)}},[askParam]);// eslint-disable-line react-hooks/exhaustive-deps
  function openSet(id:string|null){const next=new URLSearchParams(searchParams);if(id)next.set('set',id);else next.delete('set');setSearchParams(next,{replace:true});if(id){setTab('quiz');setMobile('tutor')}}
  useEffect(()=>{if(quizSet){setTab('quiz');setMobile('tutor')}},[quizSet]);
- function askAbout(text:string){setTab('ai');setMobile('tutor');newChat();void send(text)}
+ function askAbout(text:string,task:TutorTask){setTab('ai');setMobile('tutor');newChat();void send(text,false,task)}
  function openPage(level:number,printed:number){setForm(level);setPage(printed);setSource(null);setMobile('book')}
  function resize(value:number){const next=Math.min(75,Math.max(25,Math.round(value)));setSplit(next);try{localStorage.setItem('spmflow-study-split',String(next))}catch{/* per-viewer convenience only */}}
  function dragTo(clientX:number){const box=grid.current?.getBoundingClientRect();if(box&&box.width)resize((clientX-box.left)/box.width*100)}

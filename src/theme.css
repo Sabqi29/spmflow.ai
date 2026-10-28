@@ -1952,3 +1952,23 @@ a.chip:hover {
   flex: 1;
   min-height: 0;
 }
+.ai-usage {
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.ai-usage table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.ai-usage th,
+.ai-usage td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px dashed #e2bfae;
+  white-space: nowrap;
+}
+.ai-usage th:first-child,
+.ai-usage td:first-child {
+  text-align: left;
+}

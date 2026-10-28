@@ -12,9 +12,11 @@ export async function getTextbook(form:number):Promise<Textbook>{
  return data as Textbook;
 }
 export type PracticeRef={attempt_id:string;question_id:string};
-export async function askTutor(question:string, form:number, practice?:PracticeRef|null):Promise<{text:string;sources:Source[];degraded:boolean}>{
+/* What the student wants; the tutor function picks the model and prompt from it. */
+export type TutorTask='ask'|'hint'|'explain_wrong_answer';
+export async function askTutor(question:string, form:number, practice?:PracticeRef|null,task?:TutorTask):Promise<{text:string;sources:Source[];degraded:boolean}>{
  const {data:{session}}=await supabase.auth.getSession();
- const response=await fetch(`${SUPABASE_URL}/functions/v1/spmflow-ask`,{method:'POST',headers:{'Content-Type':'application/json',apikey:PUBLISHABLE_KEY,...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({question,form_level:form,subject:'sejarah',...(practice?{practice}:{})}),signal:AbortSignal.timeout(60000)});
+ const response=await fetch(`${SUPABASE_URL}/functions/v1/spmflow-ask`,{method:'POST',headers:{'Content-Type':'application/json',apikey:PUBLISHABLE_KEY,...(session?{Authorization:`Bearer ${session.access_token}`}:{})},body:JSON.stringify({question,form_level:form,subject:'sejarah',...(practice?{practice}:{}),...(task?{task_type:task}:{})}),signal:AbortSignal.timeout(60000)});
  const data=await response.json();
  if(!response.ok) throw new Error(response.status===429?'Had soalan harian telah dicapai. Cuba lagi esok.':response.status===423?'Tutor AI ditutup semasa Locked In. Hantar latihan anda dahulu.':data.error||'Tutor belum dapat dihubungi. Cuba lagi.');
  return {text:data.text||data.answer,sources:data.sources||(data.source?[data.source]:[]),degraded:!!data.degraded};
