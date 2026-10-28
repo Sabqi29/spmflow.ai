@@ -14,7 +14,7 @@ const securedHandler = withSupabase(
       return json({ error: "Method not allowed" }, 405);
     }
 
-    let body: { question?: unknown; form_level?: unknown; subject?: unknown };
+    let body: { question?: unknown; form_level?: unknown; subject?: unknown; practice?: { attempt_id?: unknown; question_id?: unknown } };
     try {
       body = await req.json();
     } catch {
@@ -27,11 +27,26 @@ const securedHandler = withSupabase(
     }
 
     if (body.subject && body.subject !== 'sejarah') return json({error:'Only Sejarah is available'},400);
-    const formLevel = Number(body.form_level ?? 4);
+    let formLevel = Number(body.form_level ?? 4);
     if (![4,5].includes(formLevel)) return json({error:'Invalid form level'},400);
     let userId: string | undefined;
     const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i,'');
     if(token){const {data,error}=await ctx.supabaseAdmin.auth.getUser(token);if(error||!data.user)return json({error:'Please sign in again'},401);userId=data.user.id;}
+
+    // Locked In: no tutor at all while an attempt is running. Review questions follow the teacher's release rule.
+    if(userId){const {data:locked,error}=await ctx.supabaseAdmin.rpc('tutor_locked_in',{target_user:userId});if(error)return json({error:'Usage service unavailable. Please retry.'},503);if(locked)return json({error:'Tutor AI ditutup semasa Locked In. Hantar latihan dahulu.',code:'locked_in'},423);}
+    let practice: PracticeContext | null = null;
+    if(body.practice){
+      const attemptId=typeof body.practice.attempt_id==='string'?body.practice.attempt_id:'';const questionId=typeof body.practice.question_id==='string'?body.practice.question_id:'';
+      if(!userId)return json({error:'Log masuk untuk bertanya tentang soalan latihan.'},401);
+      if(!/^[0-9a-f-]{36}$/i.test(attemptId)||!questionId||questionId.length>100)return json({error:'Invalid practice context'},400);
+      const {data,error}=await ctx.supabaseAdmin.rpc('tutor_question_context',{target_user:userId,target_attempt:attemptId,target_question:questionId});
+      if(error)return json({error:'Usage service unavailable. Please retry.'},503);
+      practice=(data as PracticeContext[]|null)?.[0]??null;
+      if(!practice)return json({error:'Soalan latihan tidak ditemui.'},404);
+      if(!practice.submitted&&practice.mode==='locked')return json({error:'Tutor AI ditutup semasa Locked In. Hantar latihan dahulu.',code:'locked_in'},423);
+      if(practice.form_level&&[4,5].includes(practice.form_level))formLevel=practice.form_level;
+    }
     const ip = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const bytes = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}:${userId||ip}`));
     const actor = Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -39,7 +54,8 @@ const securedHandler = withSupabase(
     if(quotaError)return json({error:'Usage service unavailable. Please retry.'},503);
     if(!allowed)return json({error:'Daily question limit reached'},429);
 
-    const queryEmbedding = await embeddingModel.run(question, {
+    const searchText = practice ? `${practice.stem}\n${question}` : question;
+    const queryEmbedding = await embeddingModel.run(searchText, {
       mean_pool: true,
       normalize: true,
     });
@@ -48,7 +64,7 @@ const securedHandler = withSupabase(
       "match_rag_chunks",
       {
         query_embedding: queryEmbedding,
-        query_text: keywords(question).join(" OR ") || question,
+        query_text: keywords(searchText).join(" OR ") || question,
         match_count: 20,
       },
     );
@@ -58,10 +74,10 @@ const securedHandler = withSupabase(
       return json({ error: "Knowledge search is temporarily unavailable" }, 503);
     }
 
-    const terms = keywords(question);
+    const terms = keywords(searchText);
     const chunks = (candidates || [])
       .filter((c:Record<string,unknown>)=>c.form===`Form ${formLevel}` && terms.some(term=>`${c.chapter_title} ${c.section_title} ${c.content}`.toLowerCase().includes(term)))
-      .sort((a:Record<string,unknown>,b:Record<string,unknown>)=>scoreChunk(question,b)-scoreChunk(question,a))
+      .sort((a:Record<string,unknown>,b:Record<string,unknown>)=>scoreChunk(searchText,b)-scoreChunk(searchText,a))
       .slice(0,5);
 
     if (!chunks?.length) {
@@ -70,18 +86,19 @@ const securedHandler = withSupabase(
         source: null,
         query: question,
         degraded: false,
+        released: practice?.released ?? null,
       });
     }
 
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
     const generated = geminiKey
-      ? await generateWithGemini(question, chunks, geminiKey)
+      ? await generateWithGemini(question, chunks, geminiKey, practice)
       : null;
-    const selectedIndex = generated?.sourceIndex ?? pickExtractiveIndex(question, chunks);
+    const selectedIndex = generated?.sourceIndex ?? pickExtractiveIndex(searchText, chunks);
     const selected = chunks[Math.min(selectedIndex, chunks.length - 1)];
 
     return json({
-      text: generated?.text ?? extractiveAnswer(selected.content, question),
+      text: generated?.text ?? extractiveAnswer(selected.content, searchText),
       source: {
         chapter_title: selected.chapter_title,
         section_title: selected.section_title,
@@ -94,6 +111,7 @@ const securedHandler = withSupabase(
       },
       query: question,
       degraded: !generated,
+      released: practice?.released ?? null,
     });
   },
 );
@@ -106,6 +124,22 @@ export default {
     return securedHandler(req);
   },
 };
+
+type PracticeContext = { stem: string; options: Record<string, string> | null; choice: string | null; answer: string | null; submitted: boolean; released: boolean; mode: string; form_level: number | null };
+
+/* Prompt section for a question opened from quiz review. Before release the model never sees the options or answer. */
+function practicePrompt(practice: PracticeContext | null) {
+  if (!practice) return "";
+  if (!practice.released) {
+    return `Pelajar bertanya tentang soalan latihan ini. Jawapan betul BELUM didedahkan oleh cikgu. ` +
+      `Terangkan konsep dan fakta buku teks yang berkaitan sahaja. Jangan teka, nyatakan atau bayangkan pilihan jawapan.\n` +
+      `Soalan latihan:\n${practice.stem}\n\n`;
+  }
+  const options = Object.entries(practice.options ?? {}).map(([key, value]) => `${key}. ${value}`).join("\n");
+  return `Pelajar sedang menyemak soalan latihan ini selepas menjawab. Terangkan kenapa jawapan betul itu betul` +
+    `${practice.choice && practice.choice !== practice.answer ? " dan kenapa pilihan pelajar kurang tepat" : ""}, berpandukan buku teks.\n` +
+    `Soalan latihan:\n${practice.stem}\n${options}\nJawapan pelajar: ${practice.choice ?? "tidak dijawab"}\nJawapan betul: ${practice.answer}\n\n`;
+}
 
 function json(value: unknown, status = 200) {
   return Response.json(value, {
@@ -175,6 +209,7 @@ async function generateWithGemini(
   question: string,
   chunks: Array<Record<string, unknown>>,
   apiKey: string,
+  practice: PracticeContext | null,
 ) {
   const context = chunks
     .map((chunk, index) =>
@@ -186,7 +221,7 @@ async function generateWithGemini(
   const prompt = `You are an SPM Sejarah tutor. Use the supplied textbook context as the primary basis. ` +
     `Answer clearly and concisely in casual Bahasa Melayu unless the student asks in English. ` +
     `Do not invent facts. End with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
-    `Konteks:\n${context}\n\nSoalan pelajar:\n${question}\n\nJawapan:`;
+    `Konteks:\n${context}\n\n${practicePrompt(practice)}Soalan pelajar:\n${question}\n\nJawapan:`;
 
   try {
     const response = await fetch(

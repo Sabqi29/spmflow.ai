@@ -111,3 +111,9 @@ create policy sessions_owner on public.chat_sessions for all using ((select auth
 revoke all on public.profiles, public.quiz_results, public.chat_sessions from anon;
 revoke all on public.quiz_results from authenticated;
 grant select, insert on public.quiz_results to authenticated;
+
+-- Referenced by question_references.
+create table public.textbooks (id text primary key, subject text not null default 'sejarah', form_level smallint not null, title text not null, storage_path text not null default '', printed_page_offset smallint not null default 0, pdf_page_count smallint, created_at timestamptz not null default now());
+create table public.rag_chunks (id text primary key, form text not null, chapter_id integer, chapter_title text, section_title text, current_page integer, page_start integer, page_end integer, content text not null default '');
+alter table public.textbooks enable row level security;
+alter table public.rag_chunks enable row level security;
