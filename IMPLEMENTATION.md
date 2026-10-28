@@ -37,7 +37,7 @@ Do not enter `const`, quotes, `Deno.env.get(...)` or multiple lines. The fallbac
 1. Supabase Auth: set Site URL to `https://spmflow.vercel.app`.
 2. Supabase Auth: add `https://spmflow.vercel.app/belajar` and `https://spmflow.vercel.app/**` to Redirect URLs; keep `http://127.0.0.1:5173/**` for development.
 3. Supabase Auth: enable leaked-password protection, then configure custom SMTP before real users. The default email service is only suitable for limited testing.
-4. Vercel: add a GitHub Login Connection and connect `Sabqi29/spmflow.ai` to the existing `spmflow-demo` project so future pushes deploy automatically. The current production deployment already works.
+4. Vercel: done. `Sabqi29/spmflow.ai` is connected to the `spmflow` project, so merges to main deploy automatically. The old `spmflow-demo.vercel.app` domain should redirect (308) to `spmflow.vercel.app` so only one address is indexed.
 5. Vercel environment variables are optional because browser-safe defaults are present. If set, use only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; never add the service-role key.
 6. After fixing Gemini and Auth settings, test signup confirmation, password reset, one T4 question, one T5 question, citation jumps and saved chat on the production domain.
 7. Railway: no setup required. Consider it later only for scheduled bulk OCR/ingestion jobs that exceed Edge Function limits.
