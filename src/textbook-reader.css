@@ -10,7 +10,7 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  color: #0f1840;
+  color: #1c1b34;
 }
 .textbook-reader:fullscreen {
   height: 100dvh;
@@ -23,7 +23,7 @@
   align-items: center;
   gap: 3px;
   padding: 6px 9px;
-  border-bottom: 1px solid #dcdee7;
+  border-bottom: 1px solid #efdfd4;
   background: #fff;
   overflow-x: auto;
   flex-shrink: 0;
@@ -36,7 +36,7 @@
   justify-content: center;
   border-radius: 7px;
   background: transparent;
-  color: #111b49;
+  color: #201f3b;
   flex: 0 0 auto;
 }
 a.reader-icon {
@@ -44,7 +44,7 @@ a.reader-icon {
 }
 .reader-icon:hover,
 .reader-icon.active {
-  background: #ebedf4;
+  background: #f7eee8;
 }
 .reader-icon:disabled {
   opacity: 0.35;
@@ -56,7 +56,7 @@ a.reader-icon {
 .reader-divider {
   width: 1px;
   height: 22px;
-  background: #dcdee8;
+  background: #efdfd5;
   margin: 0 5px;
   flex: 0 0 auto;
 }
@@ -70,17 +70,17 @@ a.reader-icon {
 .reader-page-input input {
   width: 54px;
   height: 31px;
-  border: 1px solid #d4d7e3;
+  border: 1px solid #ecd8cb;
   border-radius: 10px;
   background: #fff;
   text-align: center;
   font-size: 13px;
-  color: #101a45;
+  color: #1e1d38;
 }
 .reader-page-input span,
 .reader-zoom {
   font-size: 11px;
-  color: #666c8b;
+  color: #7e695f;
   white-space: nowrap;
 }
 .reader-zoom {
@@ -160,20 +160,20 @@ a.reader-icon {
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  border-top: 1px solid #dcdee7;
+  border-top: 1px solid #efdfd4;
   background: #fff;
   flex-shrink: 0;
 }
 .reader-scrubber span {
   font-size: 10px;
-  color: #5564a0;
+  color: #e8482c;
 }
 .reader-scrubber span:last-child {
   text-align: right;
 }
 .reader-scrubber input {
   width: 100%;
-  accent-color: #1a2a70;
+  accent-color: #302f5b;
   cursor: pointer;
 }
 .reader-thumbnails {
@@ -194,7 +194,7 @@ a.reader-icon {
   align-items: center;
   gap: 2px;
   background: transparent;
-  color: #434e7a;
+  color: #63524b;
   flex: 0 0 auto;
 }
 .reader-thumbnail-canvas {
@@ -215,7 +215,7 @@ a.reader-icon {
   max-height: 100%;
 }
 .reader-thumbnails button.active .reader-thumbnail-canvas {
-  border: 2px solid #111c4a;
+  border: 2px solid #201f3c;
   box-shadow: 0 0 0 2px #ffffffb8;
 }
 .reader-thumbnails small {
