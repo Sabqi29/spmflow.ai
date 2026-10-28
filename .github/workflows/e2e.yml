@@ -5,6 +5,10 @@ on:
       base_url:
         description: Site to test
         default: https://spmflow.vercel.app
+      ask_tutor:
+        description: Also ask the live tutor one real question (spends one guest question)
+        type: boolean
+        default: false
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -21,3 +25,4 @@ jobs:
           E2E_BASE_URL: ${{ inputs.base_url }}
           E2E_SUPABASE_URL: https://fysjjwszkegjcqszqvnq.supabase.co
           E2E_SUPABASE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+          E2E_TUTOR: ${{ inputs.ask_tutor && '1' || '0' }}
