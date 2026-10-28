@@ -20,7 +20,7 @@ npm run dev -- --host 127.0.0.1
 | `npm run lint` / `npm run typecheck` | ESLint and TypeScript |
 | `npm test` | Vitest unit tests in `tests/` |
 | `npm run test:db` | Applies new migrations to a throwaway local Postgres that mirrors the live schema (`supabase/tests/baseline.sql`), then runs the SQL tests in `supabase/tests/*.test.sql`. Needs `psql` and a local Postgres (`PGHOST`, `PGUSER`). |
-| `npm run test:e2e` | Playwright smoke tests against `E2E_BASE_URL` (guest flows only). Also runnable from the **E2E smoke** GitHub workflow. |
+| `npm run test:e2e` | Playwright smoke tests against `E2E_BASE_URL` (guest flows only) plus contract tests for the `spmflow-ask` tutor. Set `E2E_TUTOR=1` to also ask one real question. Also runnable from the **E2E smoke** GitHub workflow. |
 
 CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests, build and the database tests on every pull request.
 
@@ -29,7 +29,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, unit tests, build and the 
 - React 18 + Vite frontend. Pages: Laman utama, Utama (home after login), Belajar (textbook + tutor), Panduan (study guide), Latihan (Locked In / Open Book practice), Kemajuan, Nota, Kelas.
 - Supabase Auth and Postgres with RLS on every table; privileged logic lives in `private.*` security-definer functions behind thin `public.*` RPC wrappers.
 - Question bank in `question_sets` / `questions`. The `answer` column is not readable by API roles; `start_practice`, `submit_practice`, `get_practice_review` and `grade_guest_practice` grade on the server. Assignments carry a mode (`locked` / `open`) and an answer-release rule (`immediate`, `after_due`, `manual`, `never`) enforced in the database and in the tutor.
-- `question_references` maps questions to textbook pages. Only verified rows are visible; `supabase/scripts/suggest_question_references.sql` creates unverified suggestions.
+- `question_references` maps questions to textbook pages. Only verified rows are visible; `supabase/scripts/suggest_question_references.sql` creates unverified suggestions, and admins confirm, correct or reject them on the Semakan page (`/semakan`). Admins are rows in `private.app_admins`, added in the SQL editor.
 - `rag_chunks` with pgvector and full-text search; `spmflow-ask` Edge Function does retrieval, quotas (guest 5/day, user 20/day), Locked In blocking and Gemini/extractive answers with citations.
 - Private `textbooks` storage bucket plus the `spmflow-textbook` signed-URL function. Printed page offsets: T4 PDF page = printed + 8, T5 = printed + 10.
 
