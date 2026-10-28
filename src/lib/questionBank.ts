@@ -1,29 +1,19 @@
 import catalog from '../data/question-set-catalog.json';
+import {supabase} from './api';
 
 export type QuestionSet={id:string;year:number;title:string;paper:string;questions:number;sourceUrl:string};
-export type PastQuestion={
- id:string;
- source:{year:number;state:string;district:string;paper:string;paper_key:string};
- question_number:number;
- question:string;
- options:Record<'A'|'B'|'C'|'D',string>;
- answer:'A'|'B'|'C'|'D';
-};
+/* Served from the database without the answer key; grading happens on the server. */
+export type PastQuestion={id:string;set_id:string;question_number:number;stem:string;options:Record<string,string>};
+export type ReviewRow={question_id:string;choice:string|null;answer:string|null;is_correct:boolean|null};
 
 export const questionSets=catalog as QuestionSet[];
 
 export async function loadQuestionSet(id:string){
- const module=await import('../data/paper_1_dataset.json');
- const questions=(module.default as PastQuestion[]).filter(question=>question.source.paper_key===id);
- return questions.sort((a,b)=>a.question_number-b.question_number);
+ const {data,error}=await supabase.from('questions').select('id,set_id,question_number,stem,options').eq('set_id',id).order('question_number');
+ if(error)throw error;
+ return (data||[]) as PastQuestion[];
 }
 
 export function getQuestionSet(id:string){return questionSets.find(set=>set.id===id)}
 
-const CHOICES=['A','B','C','D'] as const;
-/* Some trial questions carry numbered statements (I–IV) or a matching table inside `options`; only A–D are answer choices. */
-export function splitOptions(options:Record<string,string>){
- const choices=CHOICES.filter(key=>key in options).map(key=>[key,options[key]] as [string,string]);
- const statements=Object.entries(options).filter(([key])=>!(CHOICES as readonly string[]).includes(key));
- return{choices,statements};
-}
+export {splitOptions} from './options';

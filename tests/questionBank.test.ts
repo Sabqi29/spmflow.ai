@@ -1,7 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import dataset from '../src/data/paper_1_dataset.json';
 import catalog from '../src/data/question-set-catalog.json';
-import {splitOptions} from '../src/lib/questionBank';
+import {splitOptions} from '../src/lib/options';
 
 type Q={id:string;source:{paper_key:string};question_number:number;question:string;options:Record<string,string>;answer:string};
 const questions=dataset as Q[];
