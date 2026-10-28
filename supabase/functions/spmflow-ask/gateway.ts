@@ -45,3 +45,36 @@ export function taskPrompt(task: Task) {
   }
   return "";
 }
+
+const ignoredWords = new Set(["apakah", "adalah", "dalam", "yang", "untuk", "dengan", "kepada", "tentang", "maksud", "what", "does", "this", "that", "from", "about",
+  "siapakah", "bagaimana", "bagaimanakah", "mengapa", "mengapakah", "kenapa", "bilakah", "manakah", "terangkan", "jelaskan", "nyatakan", "huraikan",
+  "which", "where", "when", "explain", "describe", "tell"]);
+
+export function keywords(text: string) {
+  return [...new Set(text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])]
+    .filter((word) => word.length > 3 && !ignoredWords.has(word));
+}
+
+// Words found across the whole Sejarah textbook, so matching them alone says nothing about relevance.
+const genericTerms = new Set(["sejarah", "history", "malaysia", "tanah", "melayu", "tingkatan", "form", "buku", "teks", "textbook", "bab", "chapter"]);
+
+/* Share of the question's specific keywords found in one chunk. Embedding similarity is not used because gte-small
+   scores almost every pair of Malay chunks between ~0.78 and ~0.90, so it cannot tell weak matches apart. */
+export function termCoverage(question: string, chunk: { chapter_title?: unknown; section_title?: unknown; content?: unknown }) {
+  const terms = keywords(question);
+  const specific = terms.filter((term) => !genericTerms.has(term));
+  const checked = specific.length ? specific : terms;
+  if (!checked.length) return 0;
+  const text = `${chunk.chapter_title} ${chunk.section_title} ${chunk.content}`.toLowerCase();
+  return checked.filter((term) => text.includes(term)).length / checked.length;
+}
+
+/* Only a plain question can leave the textbook; hints and practice explanations always stay on it. */
+export function mayUseWeb(task: Task, hasPractice: boolean, enabled: boolean) {
+  return enabled && task === "ask" && !hasPractice;
+}
+
+export function outOfSyllabus(formLevel: number) {
+  return `Maaf, soalan ini nampaknya di luar sukatan buku teks Sejarah Tingkatan ${formLevel}, jadi saya tidak dapat menjawabnya berdasarkan buku teks. ` +
+    `Cuba tanya tentang topik dalam buku teks, atau rujuk guru anda.`;
+}

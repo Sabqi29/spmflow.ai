@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /semakan
+Disallow: /dashboard
+Disallow: /kelas
+Disallow: /latihan/
+
+Sitemap: https://spmflow.vercel.app/sitemap.xml

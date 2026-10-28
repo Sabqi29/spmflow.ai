@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {cacheKey,estimateCost,isCacheable,normalizeQuestion,parseTask,scrubPersonalInfo} from '../supabase/functions/spmflow-ask/gateway';
+import {cacheKey,estimateCost,isCacheable,keywords,mayUseWeb,normalizeQuestion,outOfSyllabus,parseTask,scrubPersonalInfo,termCoverage} from '../supabase/functions/spmflow-ask/gateway';
 
 describe('AI gateway helpers',()=>{
  it('routes known task types and defaults safely',()=>{
@@ -39,5 +39,27 @@ describe('AI gateway helpers',()=>{
   expect(estimateCost(1_000_000,0)).toBeCloseTo(0.1);
   expect(estimateCost(1000,500)).toBeCloseTo(0.0003);
   expect(estimateCost(null,null)).toBe(0);
+ });
+});
+
+describe('textbook-first routing',()=>{
+ it('ignores question words and textbook-wide words when measuring coverage',()=>{
+  expect(keywords('Siapakah presiden pertama Amerika?')).toEqual(['presiden','pertama','amerika']);
+  const chunk={chapter_title:'Nasionalisme',section_title:'Maksud',content:'Nasionalisme ditakrifkan sebagai semangat cinta akan tanah air.'};
+  expect(termCoverage('Apakah maksud nasionalisme?',chunk)).toBe(1);
+  expect(termCoverage('Siapakah presiden pertama Amerika?',chunk)).toBe(0);
+  expect(termCoverage('Sejarah Malaysia nasionalisme iPhone',chunk)).toBe(0.5);
+ });
+
+ it('only lets plain questions use the internet, and only when switched on',()=>{
+  expect(mayUseWeb('ask',false,true)).toBe(true);
+  expect(mayUseWeb('ask',false,false)).toBe(false);
+  expect(mayUseWeb('ask',true,true)).toBe(false);
+  expect(mayUseWeb('hint',false,true)).toBe(false);
+  expect(mayUseWeb('explain_wrong_answer',false,true)).toBe(false);
+ });
+
+ it('names the form in the out-of-syllabus reply',()=>{
+  expect(outOfSyllabus(5)).toContain('Tingkatan 5');
  });
 });

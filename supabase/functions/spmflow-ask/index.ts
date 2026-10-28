@@ -1,5 +1,5 @@
 import { withSupabase } from "npm:@supabase/server";
-import { cacheKey, estimateCost, isCacheable, parseTask, scrubPersonalInfo, taskPrompt, type Task } from "./gateway.ts";
+import { cacheKey, estimateCost, isCacheable, keywords, mayUseWeb, outOfSyllabus, parseTask, scrubPersonalInfo, taskPrompt, termCoverage, type Task } from "./gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,12 +53,18 @@ const securedHandler = withSupabase(
     }
     const task = parseTask(body.task_type, !!practice);
     const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite";
-    const usage = (entry: { model: string | null; cacheHit?: boolean; degraded?: boolean; promptTokens?: number | null; outputTokens?: number | null }) =>
+    const usage = (entry: { model: string | null; cacheHit?: boolean; degraded?: boolean; promptTokens?: number | null; outputTokens?: number | null; searchCalls?: number }) =>
       ctx.supabaseAdmin.rpc("log_ai_usage", {
         task_name: task, model_name: entry.model, was_cache_hit: entry.cacheHit ?? false, was_degraded: entry.degraded ?? false, guest: !userId,
         prompt_count: entry.promptTokens ?? null, output_count: entry.outputTokens ?? null, elapsed_ms: Date.now() - started,
-        cost: entry.model && !entry.cacheHit ? estimateCost(entry.promptTokens ?? null, entry.outputTokens ?? null, price("GEMINI_INPUT_USD_PER_M", 0.1), price("GEMINI_OUTPUT_USD_PER_M", 0.4)) : 0,
+        cost: entry.model && !entry.cacheHit ? estimateCost(entry.promptTokens ?? null, entry.outputTokens ?? null, price("GEMINI_INPUT_USD_PER_M", 0.1), price("GEMINI_OUTPUT_USD_PER_M", 0.4))
+          + (entry.searchCalls ?? 0) * price("GEMINI_SEARCH_USD_PER_CALL", 0.035) : 0,
       }).then(({ error }: { error: { message: string } | null }) => { if (error) console.error("Usage log failed", error.message); });
+
+    const saveCache = async (cacheKeyValue: string, payload: Record<string, unknown>) => {
+      const { error } = await ctx.supabaseAdmin.rpc("ai_cache_put", { target_key: cacheKeyValue, task_name: task, level: formLevel, payload, model_name: model });
+      if (error) console.error("Cache write failed", error.message);
+    };
 
     // Same general question, same form: reuse the earlier AI answer without a model call or a quota charge.
     const key = isCacheable(task, !!practice) ? await cacheKey(task, formLevel, question, model) : null;
@@ -73,9 +79,12 @@ const securedHandler = withSupabase(
     const ip = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     const bytes = await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}:${userId||ip}`));
     const actor = Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,'0')).join('');
-    const {data:allowed,error:quotaError}=await ctx.supabaseAdmin.rpc('consume_tutor_quota',{actor,maximum:userId?20:5});
-    if(quotaError)return json({error:'Usage service unavailable. Please retry.'},503);
-    if(!allowed)return json({error:'Daily question limit reached'},429);
+    const consumeQuota = async () => {
+      const {data:allowed,error:quotaError}=await ctx.supabaseAdmin.rpc('consume_tutor_quota',{actor,maximum:userId?20:5});
+      if(quotaError)return json({error:'Usage service unavailable. Please retry.'},503);
+      if(!allowed)return json({error:'Daily question limit reached'},429);
+      return null;
+    };
 
     const searchText = practice ? `${practice.stem}\n${question}` : question;
     const queryEmbedding = await embeddingModel.run(searchText, {
@@ -103,49 +112,80 @@ const securedHandler = withSupabase(
       .sort((a:Record<string,unknown>,b:Record<string,unknown>)=>scoreChunk(searchText,b)-scoreChunk(searchText,a))
       .slice(0,5);
 
-    if (!chunks?.length) {
-      await usage({ model: null, degraded: true });
-      return json({
-        text: "Maaf, saya belum mempunyai maklumat buku teks yang mencukupi untuk menjawab soalan ini.",
-        source: null,
-        query: question,
-        degraded: false,
-        released: practice?.released ?? null,
-      });
-    }
-
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    // Textbook first. A plain question only leaves the textbook when the internet fallback is switched on, and is labelled as such.
+    const webAllowed = mayUseWeb(task, !!practice, Boolean(geminiKey) && /^(1|true|yes|on)$/i.test(Deno.env.get("TUTOR_WEB_FALLBACK") ?? ""));
+    const coverage = chunks.length ? Math.max(...chunks.map((c:Record<string,unknown>)=>termCoverage(question,c))) : 0;
+    // Practice questions come from the syllabus, so they always use the textbook pages that were found.
+    const relevant = chunks.length > 0 && (!!practice || task !== "ask" || coverage >= minCoverage());
+    console.log("relevance", JSON.stringify({ kept: chunks.length, coverage: Number(coverage.toFixed(2)), relevant, web: webAllowed }));
+    const offSyllabus = () => json({ text: outOfSyllabus(formLevel), answer_source: "none", source: null, query: question, degraded: false, released: practice?.released ?? null });
+
+    // Nothing in the book and no internet fallback: answer politely without using the student's daily quota.
+    if (!relevant && !webAllowed) {
+      await usage({ model: null, degraded: true });
+      return offSyllabus();
+    }
+    const quotaResponse = await consumeQuota();
+    if (quotaResponse) return quotaResponse;
+
     // Site-wide daily cap on model calls; past it, students still get the extractive textbook answer.
     const dailyLimit = Number(Deno.env.get("AI_DAILY_LIMIT") ?? 3000);
     const { data: callsToday } = geminiKey ? await ctx.supabaseAdmin.rpc("ai_calls_today") : { data: 0 };
-    const generated = geminiKey && Number(callsToday ?? 0) < dailyLimit
-      ? await generateWithGemini(question, chunks, geminiKey, practice, task, model)
-      : null;
-    const selectedIndex = generated?.sourceIndex ?? pickExtractiveIndex(searchText, chunks);
-    const selected = chunks[Math.min(selectedIndex, chunks.length - 1)];
+    const underCap = Boolean(geminiKey) && Number(callsToday ?? 0) < dailyLimit;
 
-    const result = {
-      text: generated?.text ?? extractiveAnswer(selected.content, searchText),
-      source: {
-        chapter_title: selected.chapter_title,
-        section_title: selected.section_title,
-        page: selected.current_page,
-        page_start: selected.page_start,
-        page_end: selected.page_end,
-        form: selected.form,
-        chunk_id: selected.id,
-        snippet: String(selected.content).slice(0,6000),
-      },
-      query: question,
-      degraded: !generated,
-      released: practice?.released ?? null,
-    };
-    await usage({ model: generated ? model : null, degraded: !generated, promptTokens: generated?.promptTokens, outputTokens: generated?.outputTokens });
-    if (key && generated) {
-      const { error: cacheError } = await ctx.supabaseAdmin.rpc("ai_cache_put", { target_key: key, task_name: task, level: formLevel, payload: { text: result.text, source: result.source, degraded: false }, model_name: model });
-      if (cacheError) console.error("Cache write failed", cacheError.message);
+    if (relevant) {
+      const generated = underCap
+        ? await generateWithGemini(question, chunks, geminiKey!, practice, task, model, task === "ask" && !practice)
+        : null;
+      if (!generated?.notInTextbook) {
+        const selectedIndex = generated?.sourceIndex ?? pickExtractiveIndex(searchText, chunks);
+        const selected = chunks[Math.min(selectedIndex, chunks.length - 1)];
+        const result = {
+          text: generated?.text ?? extractiveAnswer(selected.content, searchText),
+          answer_source: "textbook",
+          source: {
+            kind: "textbook",
+            chapter_title: selected.chapter_title,
+            section_title: selected.section_title,
+            page: selected.current_page,
+            page_start: selected.page_start,
+            page_end: selected.page_end,
+            form: selected.form,
+            chunk_id: selected.id,
+            snippet: String(selected.content).slice(0,6000),
+          },
+          query: question,
+          degraded: !generated,
+          released: practice?.released ?? null,
+        };
+        await usage({ model: generated ? model : null, degraded: !generated, promptTokens: generated?.promptTokens, outputTokens: generated?.outputTokens });
+        if (key && generated) await saveCache(key, { text: result.text, answer_source: "textbook", source: result.source, degraded: false });
+        return json(result);
+      }
+      // The model read the pages and said they don't answer the question: count that call, then fall through.
+      await usage({ model, promptTokens: generated.promptTokens, outputTokens: generated.outputTokens });
     }
-    return json(result);
+
+    const webModel = Deno.env.get("GEMINI_WEB_MODEL") ?? model;
+    const web = webAllowed && underCap ? await answerFromWeb(question, geminiKey!, webModel) : null;
+    if (!web) {
+      await usage({ model: null, degraded: true });
+      return offSyllabus();
+    }
+    const webResult = {
+      text: web.text,
+      answer_source: "web",
+      source: null,
+      sources: [
+        ...web.links.map((link) => ({ kind: "web", ...link })),
+        ...web.queries.map((query) => ({ kind: "search", query })),
+      ],
+      degraded: false,
+    };
+    await usage({ model: webModel, promptTokens: web.promptTokens, outputTokens: web.outputTokens, searchCalls: 1 });
+    if (key) await saveCache(key, webResult);
+    return json({ ...webResult, query: question, released: null });
   },
 );
 
@@ -186,10 +226,9 @@ function json(value: unknown, status = 200) {
   });
 }
 
-function keywords(text: string) {
-  const ignored = new Set(["apakah", "adalah", "dalam", "yang", "untuk", "dengan", "kepada", "tentang", "maksud", "what", "does", "this", "that", "from", "about"]);
-  return [...new Set(text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [])]
-    .filter((word) => word.length > 3 && !ignored.has(word));
+function minCoverage() {
+  const value = Number(Deno.env.get("TUTOR_MIN_COVERAGE") ?? "0.6");
+  return Number.isFinite(value) ? Math.min(Math.max(value, 0), 1) : 0.6;
 }
 
 function pickExtractiveIndex(question: string, chunks: Array<Record<string, unknown>>) {
@@ -250,6 +289,7 @@ async function generateWithGemini(
   practice: PracticeContext | null,
   task: Task,
   model: string,
+  allowNotInBook: boolean,
 ) {
   const context = chunks
     .map((chunk, index) =>
@@ -259,7 +299,9 @@ async function generateWithGemini(
     .join("\n\n");
   const prompt = `You are an SPM Sejarah tutor. Use the supplied textbook context as the primary basis. ` +
     `Answer clearly and concisely in casual Bahasa Melayu unless the student asks in English. ` +
-    `Do not invent facts. End with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
+    `Do not invent facts. ` +
+    (allowNotInBook ? `If the context does not contain the answer, reply with exactly TIADA_DALAM_BUKU and nothing else. Otherwise end` : `End`) +
+    ` with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
     `Konteks:\n${context}\n\n${practicePrompt(practice)}${taskPrompt(task)}Soalan pelajar:\n${question}\n\nJawapan:`;
 
   try {
@@ -284,15 +326,67 @@ async function generateWithGemini(
     const payload = await response.json();
     const raw = payload?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join("")?.trim();
     if (!raw) return null;
+    const promptTokens = Number(payload?.usageMetadata?.promptTokenCount) || null;
+    const outputTokens = Number(payload?.usageMetadata?.candidatesTokenCount) || null;
+    if (allowNotInBook && /TIADA_DALAM_BUKU/.test(raw)) return { text: "", sourceIndex: 0, promptTokens, outputTokens, notInTextbook: true };
     const citation = raw.match(/RUJUKAN:\s*\[?(?:Source\s*)?(\d+)\]?/i);
     const sourceIndex = citation ? Math.max(0, Number(citation[1]) - 1) : 0;
     const text = raw.replace(/\n?RUJUKAN:.*$/im, "").trim();
-    const promptTokens = Number(payload?.usageMetadata?.promptTokenCount) || null;
-    const outputTokens = Number(payload?.usageMetadata?.candidatesTokenCount) || null;
-    return { text, sourceIndex, promptTokens, outputTokens };
+    return { text, sourceIndex, promptTokens, outputTokens, notInTextbook: false };
   } catch (error) {
     // The message (never the key) tells a bad key value apart from a network failure.
     console.error("Gemini request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
+    return null;
+  }
+}
+
+/* Grounding with Google Search for questions the textbook does not cover. Returns null unless real search results back the answer. */
+async function answerFromWeb(question: string, apiKey: string, model: string) {
+  const prompt = `You are Flow, a study helper for Malaysian SPM students. The student's question is not covered by their ` +
+    `Sejarah textbook, so answer from Google Search results. Answer clearly and concisely in casual Bahasa Melayu unless ` +
+    `the student asks in English. Only state facts supported by the search results. If the question is not a genuine ` +
+    `study or general-knowledge question, or is unsafe, reply with exactly TIADA_JAWAPAN and nothing else. ` +
+    `Do not claim the answer comes from the textbook.\n\nSoalan pelajar:\n${question}`;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          tools: [{ google_search: {} }],
+          generationConfig: { maxOutputTokens: 1200, temperature: 0.2 },
+        }),
+      },
+    );
+    if (!response.ok) {
+      console.error("Gemini web grounding failed", response.status, (await response.text()).slice(0, 300));
+      return null;
+    }
+    const payload = await response.json();
+    const candidate = payload?.candidates?.[0];
+    const text = candidate?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join("")?.trim();
+    if (!text || /TIADA_JAWAPAN/.test(text)) return null;
+    const metadata = candidate?.groundingMetadata ?? {};
+    const seen = new Set<string>();
+    const links: Array<{ url: string; title: string }> = (metadata.groundingChunks ?? [])
+      .map((chunk: { web?: { uri?: string; title?: string } }) => chunk.web)
+      .filter((web: { uri?: string } | undefined): web is { uri: string; title?: string } => typeof web?.uri === "string" && /^https:\/\//.test(web.uri))
+      .filter((web: { uri: string }) => !seen.has(web.uri) && seen.add(web.uri))
+      .slice(0, 5)
+      .map((web: { uri: string; title?: string }) => ({ url: web.uri, title: String(web.title || new URL(web.uri).hostname).slice(0, 120) }));
+    // An answer without any search result behind it is not grounded, so treat it as no answer.
+    if (!links.length) return null;
+    const queries: string[] = (metadata.webSearchQueries ?? [])
+      .filter((query: unknown): query is string => typeof query === "string" && query.trim().length > 0)
+      .slice(0, 3)
+      .map((query: string) => query.slice(0, 200));
+    const promptTokens = Number(payload?.usageMetadata?.promptTokenCount) || null;
+    const outputTokens = Number(payload?.usageMetadata?.candidatesTokenCount) || null;
+    return { text, links, queries, promptTokens, outputTokens };
+  } catch (error) {
+    console.error("Gemini web request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
     return null;
   }
 }
