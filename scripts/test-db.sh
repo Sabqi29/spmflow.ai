@@ -8,7 +8,7 @@ psql -v ON_ERROR_STOP=1 -q -d postgres -c "drop database if exists $DB" -c "crea
 run(){ psql -v ON_ERROR_STOP=1 -q -X -d "$DB" "$@"; }
 run -f supabase/tests/baseline.sql
 # Migrations added after the live baseline (2026-10-28), in order.
-for m in supabase/migrations/2026102812*.sql; do echo "migration: $m"; run -f "$m"; done
+for m in supabase/migrations/2026102812*.sql supabase/migrations/20261029*.sql; do echo "migration: $m"; run -f "$m"; done
 node scripts/question-seed-sql.mjs | run
 run -c "select pg_temp_check from (select count(*) = 2560 as pg_temp_check from public.questions) x" | grep -q t || { echo 'seed failed'; exit 1; }
 echo 'seeded 2560 questions'
