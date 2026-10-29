@@ -78,3 +78,33 @@ export function outOfSyllabus(formLevel: number) {
   return `Maaf, soalan ini nampaknya di luar sukatan buku teks Sejarah Tingkatan ${formLevel}, jadi saya tidak dapat menjawabnya berdasarkan buku teks. ` +
     `Cuba tanya tentang topik dalam buku teks, atau rujuk guru anda.`;
 }
+
+/* Search words sent to Wikipedia: the question's keywords, so "Siapakah pencipta iPhone?" looks up "pencipta iphone". */
+export function wikiSearchTerms(question: string) {
+  return keywords(question).slice(0, 6).join(" ") || question.trim().slice(0, 200);
+}
+
+export type WikiPage = { title: string; url: string; extract: string };
+
+/* Wikipedia pages worth showing the model: a real https link and enough intro text to answer from. */
+export function usableWikiPages(pages: WikiPage[], limit = 4) {
+  const seen = new Set<string>();
+  return pages
+    .filter((page) => /^https:\/\/[a-z-]+\.wikipedia\.org\//.test(page.url) && page.extract.trim().length >= 150)
+    .filter((page) => !seen.has(page.url) && seen.add(page.url))
+    .slice(0, limit)
+    .map((page) => ({ ...page, extract: page.extract.trim().slice(0, 2500) }));
+}
+
+/* Which Wikipedia page the model cited ("RUJUKAN: 2"), or null when it said the pages don't answer the question. */
+export function readWikiAnswer(raw: string, pageCount: number) {
+  if (!raw.trim() || /TIADA_JAWAPAN/.test(raw)) return null;
+  const citation = raw.match(/RUJUKAN:\s*\[?(?:Halaman\s*|Page\s*)?(\d+)\]?/i);
+  const index = citation ? Math.min(Math.max(Number(citation[1]) - 1, 0), pageCount - 1) : 0;
+  return { text: raw.replace(/\n?RUJUKAN:.*$/im, "").trim(), index };
+}
+
+/* Google Search grounding is the paid backup after Wikipedia, limited per day. A limit of 0 turns it off. */
+export function googleBackupAllowed(usedToday: number | null, dailyLimit: number) {
+  return usedToday !== null && Number.isFinite(dailyLimit) && dailyLimit > 0 && usedToday < dailyLimit;
+}

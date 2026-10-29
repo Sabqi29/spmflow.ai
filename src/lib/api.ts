@@ -6,11 +6,13 @@ export type Source = {kind?:'textbook';chapter_title?:string;section_title?:stri
 export type WebSource = {kind:'web';title:string;url:string};
 export type SearchSuggestion = {kind:'search';query:string};
 export type AnswerSource = Source|WebSource|SearchSuggestion;
-/* Where an answer came from: the textbook, the internet (Google Search), or neither (outside the syllabus). */
+/* Where an answer came from: the textbook, the internet (Wikipedia or Google Search), or neither (outside the syllabus). */
 export type AnswerOrigin = 'textbook'|'web'|'none';
 export type Message = {id:string;role:'user'|'assistant';content:string;sources?:AnswerSource[];degraded?:boolean;origin?:AnswerOrigin};
 export const isTextbookSource=(s:AnswerSource):s is Source=>!s.kind||s.kind==='textbook';
 export const isWebSource=(s:AnswerSource):s is WebSource=>s.kind==='web'&&/^https:\/\//.test(s.url);
+/* Wikipedia answers get their own label; Google Search answers keep the general internet one. */
+export const isWikipediaSource=(s:AnswerSource)=>isWebSource(s)&&/^https:\/\/[a-z-]+\.wikipedia\.org\//.test(s.url);
 export const isSearchSuggestion=(s:AnswerSource):s is SearchSuggestion=>s.kind==='search'&&typeof s.query==='string';
 /* Saved chats have no origin column, so it is worked out from the stored sources. */
 export function answerOrigin(m:Message):AnswerOrigin|undefined{if(m.origin)return m.origin;if(m.role!=='assistant')return undefined;if(m.sources?.some(isWebSource))return 'web';if(m.sources?.some(isTextbookSource))return 'textbook';return undefined}
