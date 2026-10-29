@@ -124,3 +124,53 @@ export function readWikiAnswer(raw: string, pageCount: number) {
 export function googleBackupAllowed(usedToday: number | null, dailyLimit: number) {
   return usedToday !== null && Number.isFinite(dailyLimit) && dailyLimit > 0 && usedToday < dailyLimit;
 }
+
+/* One model the tutor can call. */
+export type ModelChoice = { provider: "ilmu" | "gemini"; model: string; key: string };
+
+/* Models to try, in order. ILMU (YTL AI Labs, hosted in Malaysia) goes first only when AI_PROVIDER=ilmu and its key is set;
+   Gemini stays as the backup whenever its key is set. */
+export function modelChain(env: (name: string) => string | undefined): ModelChoice[] {
+  const chain: ModelChoice[] = [];
+  const ilmuKey = env("ILMU_API_KEY");
+  if (ilmuKey && /^ilmu$/i.test(env("AI_PROVIDER") ?? "")) chain.push({ provider: "ilmu", model: env("ILMU_MODEL") || "ilmu-mini-v3.3", key: ilmuKey });
+  const geminiKey = env("GEMINI_API_KEY");
+  if (geminiKey) chain.push({ provider: "gemini", model: env("GEMINI_MODEL") || "gemini-3.5-flash-lite", key: geminiKey });
+  return chain;
+}
+
+/* List prices in USD per million input and output tokens (October 2026; ILMU's ringgit prices at about RM4.20 per US$1).
+   Usage-log model names may carry a "+wikipedia" or "+google-search" suffix. */
+export function defaultPrices(model: string): [number, number] {
+  if (model.startsWith("ilmu-v3")) return [0.95, 3.81];
+  if (model.startsWith("ilmu-")) return [0.048, 0.29];
+  return [0.3, 2.5];
+}
+
+/* System prompt for every tutor answer: who Flow is and how it speaks. ILMU has no separate behaviour-tuning setting,
+   so this is where the tutor's behaviour is tuned for both providers. */
+export const FLOW_PERSONA = "Anda ialah Flow, cikgu Sejarah SPM yang mesra untuk pelajar Tingkatan 4 dan 5 di Malaysia. " +
+  "Jawab dalam Bahasa Melayu santai tetapi betul (bukan bahasa pasar), kecuali pelajar bertanya dalam bahasa Inggeris. " +
+  "Guna istilah buku teks Sejarah KSSM, contohnya \"Persekutuan Tanah Melayu\", \"Malayan Union\", \"nasionalisme\", \"kedaulatan\". " +
+  "Jangan reka fakta, tarikh atau nama. Jika tidak pasti, katakan begitu. Ikut format dan arahan dalam mesej pelajar dengan tepat.";
+
+/* Prompt for an answer from textbook pages. practiceSection is the optional quiz-review context. */
+export function textbookPrompt(question: string, chunks: Array<Record<string, unknown>>, practiceSection: string, task: Task, allowNotInBook: boolean) {
+  const context = chunks
+    .map((chunk, index) =>
+      `[Source ${index + 1}] ${chunk.chapter_title} > ${chunk.section_title} ` +
+      `(m.s. ${chunk.page_start}-${chunk.page_end})\n${chunk.content}`
+    )
+    .join("\n\n");
+  return `You are an SPM Sejarah tutor. Use the supplied textbook context as the primary basis. ` +
+    `Answer clearly and concisely in casual Bahasa Melayu unless the student asks in English. ` +
+    `Do not invent facts. ` +
+    (allowNotInBook ? `If the context does not contain the answer, reply with exactly TIADA_DALAM_BUKU and nothing else. Otherwise end` : `End`) +
+    ` with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
+    `Konteks:\n${context}\n\n${practiceSection}${teacherStyle(task)}${taskPrompt(task)}Soalan pelajar:\n${question}\n\nJawapan:`;
+}
+
+/* Whether an answer uses the three headings the chat turns into notes and a mind map. */
+export function hasTeacherHeadings(text: string) {
+  return ["Isi penting", "Cara ingat", "Tip SPM"].every((heading) => new RegExp(`^#{2,4}\\s*${heading}`, "mi").test(text));
+}
