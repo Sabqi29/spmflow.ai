@@ -79,9 +79,10 @@ export function outOfSyllabus(formLevel: number) {
     `Cuba tanya tentang topik dalam buku teks, atau rujuk guru anda.`;
 }
 
-/* Search words sent to Wikipedia: the question's keywords, so "Siapakah pencipta iPhone?" looks up "pencipta iphone". */
+/* Search words sent to Wikipedia: the question's keywords joined with OR, so "Siapakah pencipta iPhone?" looks up
+   "pencipta OR iphone". Wikipedia otherwise needs every word on one page, and Malay words never appear on English pages. */
 export function wikiSearchTerms(question: string) {
-  return keywords(question).slice(0, 6).join(" ") || question.trim().slice(0, 200);
+  return keywords(question).slice(0, 6).join(" OR ") || question.trim().slice(0, 200);
 }
 
 export type WikiPage = { title: string; url: string; extract: string };

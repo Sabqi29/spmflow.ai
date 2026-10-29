@@ -67,7 +67,7 @@ describe('textbook-first routing',()=>{
 describe('Wikipedia fallback', () => {
   const long = 'Apple Inc. ialah syarikat teknologi Amerika yang mereka bentuk iPhone. '.repeat(4);
   it('searches Wikipedia with the question keywords', () => {
-    expect(wikiSearchTerms('Siapakah pencipta iPhone?')).toBe('pencipta iphone');
+    expect(wikiSearchTerms('Siapakah pencipta iPhone?')).toBe('pencipta OR iphone');
   });
   it('keeps only real Wikipedia pages with enough text, once each', () => {
     const pages = usableWikiPages([

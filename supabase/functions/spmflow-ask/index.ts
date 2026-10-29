@@ -369,7 +369,7 @@ async function searchWikipedia(lang: "ms" | "en", terms: string): Promise<WikiPa
   try {
     const response = await fetch(`https://${lang}.wikipedia.org/w/api.php?${params}`, {
       headers: { "User-Agent": "SPMFlow/1.0 (https://spmflow.vercel.app)" },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {
       console.error("Wikipedia search failed", lang, response.status);
@@ -391,6 +391,7 @@ async function answerFromWikipedia(question: string, apiKey: string, model: stri
   const terms = wikiSearchTerms(question);
   const [malay, english] = await Promise.all([searchWikipedia("ms", terms), searchWikipedia("en", terms)]);
   const pages = usableWikiPages([...malay, ...english]);
+  console.log("wikipedia", JSON.stringify({ ms: malay.length, en: english.length, usable: pages.length }));
   if (!pages.length) return null;
   const context = pages.map((page, index) => `[Halaman ${index + 1}] ${page.title}\n${page.extract}`).join("\n\n");
   const prompt = `You are Flow, a study helper for Malaysian SPM students. The student's question is not covered by their ` +
