@@ -1,5 +1,5 @@
 import { withSupabase } from "npm:@supabase/server";
-import { cacheKey, estimateCost, isCacheable, keywords, mayUseWeb, outOfSyllabus, parseTask, scrubPersonalInfo, taskPrompt, termCoverage, type Task } from "./gateway.ts";
+import { cacheKey, estimateCost, googleBackupAllowed, isCacheable, keywords, mayUseWeb, outOfSyllabus, parseTask, readWikiAnswer, scrubPersonalInfo, taskPrompt, termCoverage, usableWikiPages, wikiSearchTerms, type Task, type WikiPage } from "./gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -167,8 +167,28 @@ const securedHandler = withSupabase(
       await usage({ model, promptTokens: generated.promptTokens, outputTokens: generated.outputTokens });
     }
 
-    const webModel = Deno.env.get("GEMINI_WEB_MODEL") ?? model;
-    const web = webAllowed && underCap ? await answerFromWeb(question, geminiKey!, webModel) : null;
+    // Outside the textbook: Wikipedia first (free search, one cheap model call), then Google Search grounding as a capped paid backup.
+    let web: { text: string; links: Array<{ url: string; title: string }>; queries: string[]; provider: "wikipedia" | "google" } | null = null;
+    if (webAllowed && underCap) {
+      const wiki = await answerFromWikipedia(question, geminiKey!, model);
+      if (wiki) {
+        await usage({ model: `${model}+wikipedia`, promptTokens: wiki.promptTokens, outputTokens: wiki.outputTokens });
+        if (wiki.answer) web = { ...wiki.answer, queries: [], provider: "wikipedia" };
+      }
+      if (!web) {
+        const { data: googleToday, error: googleCountError } = await ctx.supabaseAdmin.rpc("ai_google_calls_today");
+        if (googleCountError) console.error("Google call count failed", googleCountError.message);
+        if (googleBackupAllowed(googleCountError ? null : Number(googleToday ?? 0), Number(Deno.env.get("TUTOR_GOOGLE_DAILY_LIMIT") ?? 50))) {
+          const webModel = Deno.env.get("GEMINI_WEB_MODEL") ?? model;
+          const google = await answerFromWeb(question, geminiKey!, webModel);
+          if (google) {
+            await usage({ model: `${webModel}+google-search`, promptTokens: google.promptTokens, outputTokens: google.outputTokens, searchCalls: 1 });
+            web = { text: google.text, links: google.links, queries: google.queries, provider: "google" };
+          }
+        }
+      }
+    }
+    console.log("web answer", JSON.stringify({ provider: web?.provider ?? null }));
     if (!web) {
       await usage({ model: null, degraded: true });
       return offSyllabus();
@@ -176,6 +196,7 @@ const securedHandler = withSupabase(
     const webResult = {
       text: web.text,
       answer_source: "web",
+      web_provider: web.provider,
       source: null,
       sources: [
         ...web.links.map((link) => ({ kind: "web", ...link })),
@@ -183,7 +204,6 @@ const securedHandler = withSupabase(
       ],
       degraded: false,
     };
-    await usage({ model: webModel, promptTokens: web.promptTokens, outputTokens: web.outputTokens, searchCalls: 1 });
     if (key) await saveCache(key, webResult);
     return json({ ...webResult, query: question, released: null });
   },
@@ -336,6 +356,77 @@ async function generateWithGemini(
   } catch (error) {
     // The message (never the key) tells a bad key value apart from a network failure.
     console.error("Gemini request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
+    return null;
+  }
+}
+
+/* Looks the question up on Bahasa Melayu and English Wikipedia (free, no key) and returns the intro of the best pages. */
+async function searchWikipedia(lang: "ms" | "en", terms: string): Promise<WikiPage[]> {
+  const params = new URLSearchParams({
+    action: "query", format: "json", formatversion: "2", generator: "search", gsrsearch: terms, gsrlimit: "2",
+    prop: "extracts|info", exintro: "1", explaintext: "1", exlimit: "max", inprop: "url", redirects: "1",
+  });
+  try {
+    const response = await fetch(`https://${lang}.wikipedia.org/w/api.php?${params}`, {
+      headers: { "User-Agent": "SPMFlow/1.0 (https://spmflow.vercel.app)" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) {
+      console.error("Wikipedia search failed", lang, response.status);
+      return [];
+    }
+    const payload = await response.json();
+    return ((payload?.query?.pages ?? []) as Array<{ index?: number; title?: string; fullurl?: string; extract?: string }>)
+      .sort((a, b) => (a.index ?? 99) - (b.index ?? 99))
+      .map((page) => ({ title: String(page.title ?? ""), url: String(page.fullurl ?? ""), extract: String(page.extract ?? "") }));
+  } catch (error) {
+    console.error("Wikipedia request failed", lang, error instanceof Error ? error.name : "UnknownError");
+    return [];
+  }
+}
+
+/* Answers from Wikipedia intros with one model call. Returns null when no page was found or the call failed;
+   answer is null when the model read the pages and they don't answer the question. */
+async function answerFromWikipedia(question: string, apiKey: string, model: string) {
+  const terms = wikiSearchTerms(question);
+  const [malay, english] = await Promise.all([searchWikipedia("ms", terms), searchWikipedia("en", terms)]);
+  const pages = usableWikiPages([...malay, ...english]);
+  console.log("wikipedia", JSON.stringify({ ms: malay.length, en: english.length, usable: pages.length }));
+  if (!pages.length) return null;
+  const context = pages.map((page, index) => `[Halaman ${index + 1}] ${page.title}\n${page.extract}`).join("\n\n");
+  const prompt = `You are Flow, a study helper for Malaysian SPM students. The student's question is not covered by their ` +
+    `Sejarah textbook, so answer only from the Wikipedia extracts below. Answer clearly and concisely in casual Bahasa Melayu ` +
+    `unless the student asks in English. Do not add facts that are not in the extracts. If the extracts do not answer the ` +
+    `question, or it is not a genuine study or general-knowledge question, or it is unsafe, reply with exactly TIADA_JAWAPAN ` +
+    `and nothing else. Do not claim the answer comes from the textbook. Otherwise end with exactly RUJUKAN: <N>, choosing ` +
+    `the page you used most.\n\nWikipedia:\n${context}\n\nSoalan pelajar:\n${question}\n\nJawapan:`;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 1200, temperature: 0.2 },
+        }),
+      },
+    );
+    if (!response.ok) {
+      console.error("Gemini Wikipedia answer failed", response.status, (await response.text()).slice(0, 300));
+      return null;
+    }
+    const payload = await response.json();
+    const raw = payload?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join("") ?? "";
+    const read = readWikiAnswer(raw, pages.length);
+    const page = read ? pages[read.index] : null;
+    return {
+      answer: read && page ? { text: read.text, links: [{ url: page.url, title: `Wikipedia: ${page.title}`.slice(0, 120) }] } : null,
+      promptTokens: Number(payload?.usageMetadata?.promptTokenCount) || null,
+      outputTokens: Number(payload?.usageMetadata?.candidatesTokenCount) || null,
+    };
+  } catch (error) {
+    console.error("Gemini Wikipedia request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
     return null;
   }
 }

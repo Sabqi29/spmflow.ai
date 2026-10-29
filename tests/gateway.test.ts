@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {cacheKey,estimateCost,isCacheable,keywords,mayUseWeb,normalizeQuestion,outOfSyllabus,parseTask,scrubPersonalInfo,termCoverage} from '../supabase/functions/spmflow-ask/gateway';
+import {cacheKey,estimateCost,googleBackupAllowed,isCacheable,keywords,mayUseWeb,normalizeQuestion,outOfSyllabus,parseTask,readWikiAnswer,scrubPersonalInfo,termCoverage,usableWikiPages,wikiSearchTerms} from '../supabase/functions/spmflow-ask/gateway';
 
 describe('AI gateway helpers',()=>{
  it('routes known task types and defaults safely',()=>{
@@ -62,4 +62,34 @@ describe('textbook-first routing',()=>{
  it('names the form in the out-of-syllabus reply',()=>{
   expect(outOfSyllabus(5)).toContain('Tingkatan 5');
  });
+});
+
+describe('Wikipedia fallback', () => {
+  const long = 'Apple Inc. ialah syarikat teknologi Amerika yang mereka bentuk iPhone. '.repeat(4);
+  it('searches Wikipedia with the question keywords', () => {
+    expect(wikiSearchTerms('Siapakah pencipta iPhone?')).toBe('pencipta OR iphone');
+  });
+  it('keeps only real Wikipedia pages with enough text, once each', () => {
+    const pages = usableWikiPages([
+      { title: 'iPhone', url: 'https://ms.wikipedia.org/wiki/IPhone', extract: long },
+      { title: 'iPhone', url: 'https://ms.wikipedia.org/wiki/IPhone', extract: long },
+      { title: 'Pendek', url: 'https://ms.wikipedia.org/wiki/Pendek', extract: 'terlalu pendek' },
+      { title: 'Palsu', url: 'https://evil.example/wiki/IPhone', extract: long },
+      { title: 'iPhone', url: 'https://en.wikipedia.org/wiki/IPhone', extract: 'x'.repeat(5000) },
+    ]);
+    expect(pages.map((p) => p.url)).toEqual(['https://ms.wikipedia.org/wiki/IPhone', 'https://en.wikipedia.org/wiki/IPhone']);
+    expect(pages[1].extract.length).toBe(2500);
+  });
+  it('reads the cited page and treats TIADA_JAWAPAN as no answer', () => {
+    expect(readWikiAnswer('iPhone dicipta oleh Apple.\nRUJUKAN: 2', 3)).toEqual({ text: 'iPhone dicipta oleh Apple.', index: 1 });
+    expect(readWikiAnswer('Jawapan.\nRUJUKAN: 9', 2)?.index).toBe(1);
+    expect(readWikiAnswer('Jawapan tanpa rujukan', 2)?.index).toBe(0);
+    expect(readWikiAnswer('TIADA_JAWAPAN', 2)).toBeNull();
+  });
+  it('caps the paid Google backup per day', () => {
+    expect(googleBackupAllowed(10, 50)).toBe(true);
+    expect(googleBackupAllowed(50, 50)).toBe(false);
+    expect(googleBackupAllowed(0, 0)).toBe(false);
+    expect(googleBackupAllowed(null, 50)).toBe(false);
+  });
 });
