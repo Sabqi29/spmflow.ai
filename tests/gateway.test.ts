@@ -96,8 +96,9 @@ describe('Wikipedia fallback', () => {
 
 describe('model chain', () => {
   const env = (values: Record<string, string>) => (name: string) => values[name];
-  it('keeps Gemini only until AI_PROVIDER=ilmu', () => {
-    expect(modelChain(env({ GEMINI_API_KEY: 'g', ILMU_API_KEY: 'i' })).map((c) => c.model)).toEqual(['gemini-3.5-flash-lite']);
+  it('puts Gemini first with ILMU as the backup unless AI_PROVIDER=ilmu', () => {
+    expect(modelChain(env({ GEMINI_API_KEY: 'g', ILMU_API_KEY: 'i' })).map((c) => c.provider)).toEqual(['gemini', 'ilmu']);
+    expect(modelChain(env({ GEMINI_API_KEY: 'g' })).map((c) => c.provider)).toEqual(['gemini']);
   });
   it('puts ILMU first with Gemini as the backup', () => {
     const chain = modelChain(env({ GEMINI_API_KEY: 'g', ILMU_API_KEY: 'i', AI_PROVIDER: 'ilmu' }));
@@ -106,6 +107,7 @@ describe('model chain', () => {
   it('honours ILMU_MODEL and needs a key', () => {
     expect(modelChain(env({ ILMU_API_KEY: 'i', AI_PROVIDER: 'ilmu', ILMU_MODEL: 'ilmu-v3.1' }))[0].model).toBe('ilmu-v3.1');
     expect(modelChain(env({ AI_PROVIDER: 'ilmu' }))).toEqual([]);
+    expect(modelChain(env({ ILMU_API_KEY: 'i' })).map((c) => c.provider)).toEqual(['ilmu']);
   });
   it('prices models, including usage-log suffixes', () => {
     expect(defaultPrices('gemini-3.5-flash-lite+wikipedia')).toEqual([0.3, 2.5]);

@@ -128,15 +128,15 @@ export function googleBackupAllowed(usedToday: number | null, dailyLimit: number
 /* One model the tutor can call. */
 export type ModelChoice = { provider: "ilmu" | "gemini"; model: string; key: string };
 
-/* Models to try, in order. ILMU (YTL AI Labs, hosted in Malaysia) goes first only when AI_PROVIDER=ilmu and its key is set;
-   Gemini stays as the backup whenever its key is set. */
+/* Models to try, in order: every model whose key is set, with ILMU (YTL AI Labs, hosted in Malaysia) first when
+   AI_PROVIDER=ilmu and Gemini first otherwise. The other one is the backup. */
 export function modelChain(env: (name: string) => string | undefined): ModelChoice[] {
   const chain: ModelChoice[] = [];
   const ilmuKey = env("ILMU_API_KEY");
-  if (ilmuKey && /^ilmu$/i.test(env("AI_PROVIDER") ?? "")) chain.push({ provider: "ilmu", model: env("ILMU_MODEL") || "ilmu-mini-v3.3", key: ilmuKey });
+  if (ilmuKey) chain.push({ provider: "ilmu", model: env("ILMU_MODEL") || "ilmu-mini-v3.3", key: ilmuKey });
   const geminiKey = env("GEMINI_API_KEY");
   if (geminiKey) chain.push({ provider: "gemini", model: env("GEMINI_MODEL") || "gemini-3.5-flash-lite", key: geminiKey });
-  return chain;
+  return /^ilmu$/i.test(env("AI_PROVIDER") ?? "") ? chain : chain.reverse();
 }
 
 /* List prices in USD per million input and output tokens (October 2026; ILMU's ringgit prices at about RM4.20 per US$1).
