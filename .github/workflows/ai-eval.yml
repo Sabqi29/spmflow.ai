@@ -1,0 +1,17 @@
+name: Tutor model comparison
+on:
+  workflow_dispatch:
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the 20-question Sejarah comparison
+        run: |
+          curl -sS --max-time 400 -X POST https://fysjjwszkegjcqszqvnq.supabase.co/functions/v1/spmflow-eval \
+            -H "apikey: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}" -H "Content-Type: application/json" -d '{}' -o eval.json -w "HTTP %{http_code}\n"
+          jq '.summary // .' eval.json
+          jq -r '.results[]? | "\n=== T\(.form): \(.question)\nSumber: \(.source)", (.answers[] | "--- \(.model) (\(.ms)ms, \(.outputTokens // 0) tok, $\(.costUsd // 0), tajuk=\(.headings // false))\n\(.text // "GAGAL")")' eval.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tutor-model-comparison
+          path: eval.json

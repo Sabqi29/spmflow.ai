@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {cacheKey,estimateCost,googleBackupAllowed,isCacheable,keywords,mayUseWeb,normalizeQuestion,outOfSyllabus,parseTask,readWikiAnswer,scrubPersonalInfo,termCoverage,usableWikiPages,wikiSearchTerms} from '../supabase/functions/spmflow-ask/gateway';
+import {cacheKey,defaultPrices,estimateCost,googleBackupAllowed,hasTeacherHeadings,modelChain,textbookPrompt,isCacheable,keywords,mayUseWeb,normalizeQuestion,outOfSyllabus,parseTask,readWikiAnswer,scrubPersonalInfo,termCoverage,usableWikiPages,wikiSearchTerms} from '../supabase/functions/spmflow-ask/gateway';
 
 describe('AI gateway helpers',()=>{
  it('routes known task types and defaults safely',()=>{
@@ -91,5 +91,32 @@ describe('Wikipedia fallback', () => {
     expect(googleBackupAllowed(50, 50)).toBe(false);
     expect(googleBackupAllowed(0, 0)).toBe(false);
     expect(googleBackupAllowed(null, 50)).toBe(false);
+  });
+});
+
+describe('model chain', () => {
+  const env = (values: Record<string, string>) => (name: string) => values[name];
+  it('keeps Gemini only until AI_PROVIDER=ilmu', () => {
+    expect(modelChain(env({ GEMINI_API_KEY: 'g', ILMU_API_KEY: 'i' })).map((c) => c.model)).toEqual(['gemini-3.5-flash-lite']);
+  });
+  it('puts ILMU first with Gemini as the backup', () => {
+    const chain = modelChain(env({ GEMINI_API_KEY: 'g', ILMU_API_KEY: 'i', AI_PROVIDER: 'ilmu' }));
+    expect(chain.map((c) => `${c.provider}:${c.model}`)).toEqual(['ilmu:ilmu-mini-v3.3', 'gemini:gemini-3.5-flash-lite']);
+  });
+  it('honours ILMU_MODEL and needs a key', () => {
+    expect(modelChain(env({ ILMU_API_KEY: 'i', AI_PROVIDER: 'ilmu', ILMU_MODEL: 'ilmu-v3.1' }))[0].model).toBe('ilmu-v3.1');
+    expect(modelChain(env({ AI_PROVIDER: 'ilmu' }))).toEqual([]);
+  });
+  it('prices models, including usage-log suffixes', () => {
+    expect(defaultPrices('gemini-3.5-flash-lite+wikipedia')).toEqual([0.3, 2.5]);
+    expect(defaultPrices('ilmu-mini-v3.3+wikipedia')).toEqual([0.048, 0.29]);
+    expect(defaultPrices('ilmu-v3.1')).toEqual([0.95, 3.81]);
+  });
+  it('asks for the note headings and spots them in an answer', () => {
+    const prompt = textbookPrompt('Apakah Malayan Union?', [{ chapter_title: 'Bab 5', section_title: 'Malayan Union', page_start: 1, page_end: 2, content: 'x' }], '', 'ask', true);
+    expect(prompt).toContain('### Isi penting');
+    expect(prompt).toContain('TIADA_DALAM_BUKU');
+    expect(hasTeacherHeadings('Jawapan.\n### Isi penting\n1. **a**\n### Cara ingat\nx\n### Tip SPM\ny')).toBe(true);
+    expect(hasTeacherHeadings('Jawapan tanpa tajuk')).toBe(false);
   });
 });

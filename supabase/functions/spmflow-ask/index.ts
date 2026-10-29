@@ -1,5 +1,7 @@
 import { withSupabase } from "npm:@supabase/server";
-import { cacheKey, estimateCost, googleBackupAllowed, isCacheable, keywords, mayUseWeb, outOfSyllabus, parseTask, readWikiAnswer, scrubPersonalInfo, taskPrompt, teacherStyle, termCoverage, usableWikiPages, wikiSearchTerms, type Task, type WikiPage } from "./gateway.ts";
+import { cacheKey, defaultPrices, estimateCost, FLOW_PERSONA, googleBackupAllowed, isCacheable, keywords, mayUseWeb, modelChain, outOfSyllabus, parseTask, readWikiAnswer, scrubPersonalInfo, teacherStyle, termCoverage, textbookPrompt, usableWikiPages, wikiSearchTerms, type ModelChoice, type Task, type WikiPage } from "./gateway.ts";
+import { callChain } from "./models.ts";
+import { findChunks, scoreChunk } from "./retrieval.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,13 +54,15 @@ const securedHandler = withSupabase(
       if(practice.form_level&&[4,5].includes(practice.form_level))formLevel=practice.form_level;
     }
     const task = parseTask(body.task_type, !!practice);
-    const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash-lite";
+    // ILMU first when AI_PROVIDER=ilmu, Gemini as the backup. The first model names the cache entry and the usage rows.
+    const chain = modelChain((name) => Deno.env.get(name));
+    const model = chain[0]?.model ?? "gemini-3.5-flash-lite";
     const usage = (entry: { model: string | null; cacheHit?: boolean; degraded?: boolean; promptTokens?: number | null; outputTokens?: number | null; searchCalls?: number }) =>
       ctx.supabaseAdmin.rpc("log_ai_usage", {
         task_name: task, model_name: entry.model, was_cache_hit: entry.cacheHit ?? false, was_degraded: entry.degraded ?? false, guest: !userId,
         prompt_count: entry.promptTokens ?? null, output_count: entry.outputTokens ?? null, elapsed_ms: Date.now() - started,
-        cost: entry.model && !entry.cacheHit ? estimateCost(entry.promptTokens ?? null, entry.outputTokens ?? null, price("GEMINI_INPUT_USD_PER_M", 0.1), price("GEMINI_OUTPUT_USD_PER_M", 0.4))
-          + (entry.searchCalls ?? 0) * price("GEMINI_SEARCH_USD_PER_CALL", 0.035) : 0,
+        cost: entry.model && !entry.cacheHit ? estimateCost(entry.promptTokens ?? null, entry.outputTokens ?? null, ...prices(entry.model))
+          + (entry.searchCalls ?? 0) * price("GEMINI_SEARCH_USD_PER_CALL", 0.014) : 0,
       }).then(({ error }: { error: { message: string } | null }) => { if (error) console.error("Usage log failed", error.message); });
 
     const saveCache = async (cacheKeyValue: string, payload: Record<string, unknown>) => {
@@ -87,34 +91,11 @@ const securedHandler = withSupabase(
     };
 
     const searchText = practice ? `${practice.stem}\n${question}` : question;
-    const queryEmbedding = await embeddingModel.run(searchText, {
-      mean_pool: true,
-      normalize: true,
-    });
+    const chunks = await findChunks((name, args) => ctx.supabaseAdmin.rpc(name, args), embeddingModel, searchText, question, formLevel);
+    if (!chunks) return json({ error: "Knowledge search is temporarily unavailable" }, 503);
 
-    const { data: candidates, error: retrievalError } = await ctx.supabaseAdmin.rpc(
-      "match_rag_chunks",
-      {
-        query_embedding: queryEmbedding,
-        query_text: keywords(searchText).join(" OR ") || question,
-        match_count: 20,
-      },
-    );
-
-    if (retrievalError) {
-      console.error("RAG retrieval failed", retrievalError);
-      return json({ error: "Knowledge search is temporarily unavailable" }, 503);
-    }
-
-    const terms = keywords(searchText);
-    const chunks = (candidates || [])
-      .filter((c:Record<string,unknown>)=>c.form===`Form ${formLevel}` && terms.some(term=>`${c.chapter_title} ${c.section_title} ${c.content}`.toLowerCase().includes(term)))
-      .sort((a:Record<string,unknown>,b:Record<string,unknown>)=>scoreChunk(searchText,b)-scoreChunk(searchText,a))
-      .slice(0,5);
-
-    const geminiKey = Deno.env.get("GEMINI_API_KEY");
     // Textbook first. A plain question only leaves the textbook when the internet fallback is switched on, and is labelled as such.
-    const webAllowed = mayUseWeb(task, !!practice, Boolean(geminiKey) && /^(1|true|yes|on)$/i.test(Deno.env.get("TUTOR_WEB_FALLBACK") ?? ""));
+    const webAllowed = mayUseWeb(task, !!practice, chain.length > 0 && /^(1|true|yes|on)$/i.test(Deno.env.get("TUTOR_WEB_FALLBACK") ?? ""));
     const coverage = chunks.length ? Math.max(...chunks.map((c:Record<string,unknown>)=>termCoverage(question,c))) : 0;
     // Practice questions come from the syllabus, so they always use the textbook pages that were found.
     const relevant = chunks.length > 0 && (!!practice || task !== "ask" || coverage >= minCoverage());
@@ -131,12 +112,12 @@ const securedHandler = withSupabase(
 
     // Site-wide daily cap on model calls; past it, students still get the extractive textbook answer.
     const dailyLimit = Number(Deno.env.get("AI_DAILY_LIMIT") ?? 3000);
-    const { data: callsToday } = geminiKey ? await ctx.supabaseAdmin.rpc("ai_calls_today") : { data: 0 };
-    const underCap = Boolean(geminiKey) && Number(callsToday ?? 0) < dailyLimit;
+    const { data: callsToday } = chain.length ? await ctx.supabaseAdmin.rpc("ai_calls_today") : { data: 0 };
+    const underCap = chain.length > 0 && Number(callsToday ?? 0) < dailyLimit;
 
     if (relevant) {
       const generated = underCap
-        ? await generateWithGemini(question, chunks, geminiKey!, practice, task, model, task === "ask" && !practice)
+        ? await generateFromTextbook(question, chunks, chain, practice, task, task === "ask" && !practice)
         : null;
       if (!generated?.notInTextbook) {
         const selectedIndex = generated?.sourceIndex ?? pickExtractiveIndex(searchText, chunks);
@@ -159,28 +140,29 @@ const securedHandler = withSupabase(
           degraded: !generated,
           released: practice?.released ?? null,
         };
-        await usage({ model: generated ? model : null, degraded: !generated, promptTokens: generated?.promptTokens, outputTokens: generated?.outputTokens });
+        await usage({ model: generated?.model ?? null, degraded: !generated, promptTokens: generated?.promptTokens, outputTokens: generated?.outputTokens });
         if (key && generated) await saveCache(key, { text: result.text, answer_source: "textbook", source: result.source, degraded: false });
         return json(result);
       }
       // The model read the pages and said they don't answer the question: count that call, then fall through.
-      await usage({ model, promptTokens: generated.promptTokens, outputTokens: generated.outputTokens });
+      await usage({ model: generated.model, promptTokens: generated.promptTokens, outputTokens: generated.outputTokens });
     }
 
     // Outside the textbook: Wikipedia first (free search, one cheap model call), then Google Search grounding as a capped paid backup.
     let web: { text: string; links: Array<{ url: string; title: string }>; queries: string[]; provider: "wikipedia" | "google" } | null = null;
     if (webAllowed && underCap) {
-      const wiki = await answerFromWikipedia(question, geminiKey!, model);
+      const wiki = await answerFromWikipedia(question, chain);
       if (wiki) {
-        await usage({ model: `${model}+wikipedia`, promptTokens: wiki.promptTokens, outputTokens: wiki.outputTokens });
+        await usage({ model: `${wiki.model}+wikipedia`, promptTokens: wiki.promptTokens, outputTokens: wiki.outputTokens });
         if (wiki.answer) web = { ...wiki.answer, queries: [], provider: "wikipedia" };
       }
       if (!web) {
         const { data: googleToday, error: googleCountError } = await ctx.supabaseAdmin.rpc("ai_google_calls_today");
         if (googleCountError) console.error("Google call count failed", googleCountError.message);
-        if (googleBackupAllowed(googleCountError ? null : Number(googleToday ?? 0), Number(Deno.env.get("TUTOR_GOOGLE_DAILY_LIMIT") ?? 50))) {
-          const webModel = Deno.env.get("GEMINI_WEB_MODEL") ?? model;
-          const google = await answerFromWeb(question, geminiKey!, webModel);
+        const gemini = chain.find((choice) => choice.provider === "gemini");
+        if (gemini && googleBackupAllowed(googleCountError ? null : Number(googleToday ?? 0), Number(Deno.env.get("TUTOR_GOOGLE_DAILY_LIMIT") ?? 50))) {
+          const webModel = Deno.env.get("GEMINI_WEB_MODEL") ?? gemini.model;
+          const google = await answerFromWeb(question, gemini.key, webModel);
           if (google) {
             await usage({ model: `${webModel}+google-search`, promptTokens: google.promptTokens, outputTokens: google.outputTokens, searchCalls: 1 });
             web = { text: google.text, links: google.links, queries: google.queries, provider: "google" };
@@ -208,6 +190,14 @@ const securedHandler = withSupabase(
     return json({ ...webResult, query: question, released: null });
   },
 );
+
+/* USD per million input and output tokens for a usage-log model name; secrets override the list prices. */
+function prices(model: string): [number, number] {
+  const [input, output] = defaultPrices(model);
+  return model.startsWith("ilmu-")
+    ? [price("ILMU_INPUT_USD_PER_M", input), price("ILMU_OUTPUT_USD_PER_M", output)]
+    : [price("GEMINI_INPUT_USD_PER_M", input), price("GEMINI_OUTPUT_USD_PER_M", output)];
+}
 
 function price(name: string, fallback: number) {
   const value = Number(Deno.env.get(name));
@@ -264,21 +254,6 @@ function pickExtractiveIndex(question: string, chunks: Array<Record<string, unkn
   return bestIndex;
 }
 
-function scoreChunk(question: string, chunk: Record<string, unknown>) {
-  const terms = keywords(question);
-  const definitionIntent = /\b(maksud|takrif|definisi|meaning|define|definition)\b/i.test(question);
-  const heading = `${chunk.chapter_title} ${chunk.section_title}`.toLowerCase();
-  const content = String(chunk.content ?? '').toLowerCase();
-  const text = `${heading} ${content}`;
-  const matches = terms.map((term) => text.match(new RegExp(term, "gu"))?.length ?? 0);
-  let score = matches.filter(Boolean).length * 10 + matches.reduce((total, count) => total + count, 0);
-  if (definitionIntent && /takrif|konsep/.test(heading)) score += 30;
-  if (definitionIntent && /ditakrifkan sebagai/.test(content)) score += 80;
-  else if (definitionIntent && /bermaksud|merujuk| ialah /.test(` ${content} `)) score += 20;
-  if (definitionIntent && /jenis kedaulatan/.test(content.slice(0, 250))) score -= 35;
-  return score;
-}
-
 function extractiveAnswer(content: string, question: string) {
   const cleaned = content
     .replace(/^#{1,6}\s+/gm, "")
@@ -302,62 +277,23 @@ function extractiveAnswer(content: string, question: string) {
   return `Berdasarkan buku teks: ${excerpt}`;
 }
 
-async function generateWithGemini(
+/* Answer from textbook pages with the first model in the chain that responds. */
+async function generateFromTextbook(
   question: string,
   chunks: Array<Record<string, unknown>>,
-  apiKey: string,
+  chain: ModelChoice[],
   practice: PracticeContext | null,
   task: Task,
-  model: string,
   allowNotInBook: boolean,
 ) {
-  const context = chunks
-    .map((chunk, index) =>
-      `[Source ${index + 1}] ${chunk.chapter_title} > ${chunk.section_title} ` +
-      `(m.s. ${chunk.page_start}-${chunk.page_end})\n${chunk.content}`
-    )
-    .join("\n\n");
-  const prompt = `You are an SPM Sejarah tutor. Use the supplied textbook context as the primary basis. ` +
-    `Answer clearly and concisely in casual Bahasa Melayu unless the student asks in English. ` +
-    `Do not invent facts. ` +
-    (allowNotInBook ? `If the context does not contain the answer, reply with exactly TIADA_DALAM_BUKU and nothing else. Otherwise end` : `End`) +
-    ` with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
-    `Konteks:\n${context}\n\n${practicePrompt(practice)}${teacherStyle(task)}${taskPrompt(task)}Soalan pelajar:\n${question}\n\nJawapan:`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1200, temperature: 0.2 },
-        }),
-      },
-    );
-    if (!response.ok) {
-      console.error("Gemini generation failed", response.status, (await response.text()).slice(0, 300));
-      return null;
-    }
-    const payload = await response.json();
-    const raw = payload?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join("")?.trim();
-    if (!raw) return null;
-    const promptTokens = Number(payload?.usageMetadata?.promptTokenCount) || null;
-    const outputTokens = Number(payload?.usageMetadata?.candidatesTokenCount) || null;
-    if (allowNotInBook && /TIADA_DALAM_BUKU/.test(raw)) return { text: "", sourceIndex: 0, promptTokens, outputTokens, notInTextbook: true };
-    const citation = raw.match(/RUJUKAN:\s*\[?(?:Source\s*)?(\d+)\]?/i);
-    const sourceIndex = citation ? Math.max(0, Number(citation[1]) - 1) : 0;
-    const text = raw.replace(/\n?RUJUKAN:.*$/im, "").trim();
-    return { text, sourceIndex, promptTokens, outputTokens, notInTextbook: false };
-  } catch (error) {
-    // The message (never the key) tells a bad key value apart from a network failure.
-    console.error("Gemini request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
-    return null;
-  }
+  const reply = await callChain(chain, FLOW_PERSONA, textbookPrompt(question, chunks, practicePrompt(practice), task, allowNotInBook));
+  if (!reply) return null;
+  const { promptTokens, outputTokens, model } = reply;
+  if (allowNotInBook && /TIADA_DALAM_BUKU/.test(reply.text)) return { text: "", sourceIndex: 0, promptTokens, outputTokens, model, notInTextbook: true };
+  const citation = reply.text.match(/RUJUKAN:\s*\[?(?:Source\s*)?(\d+)\]?/i);
+  const sourceIndex = citation ? Math.max(0, Number(citation[1]) - 1) : 0;
+  const text = reply.text.replace(/\n?RUJUKAN:.*$/im, "").trim();
+  return { text, sourceIndex, promptTokens, outputTokens, model, notInTextbook: false };
 }
 
 /* Looks the question up on Bahasa Melayu and English Wikipedia (free, no key) and returns the intro of the best pages. */
@@ -387,7 +323,7 @@ async function searchWikipedia(lang: "ms" | "en", terms: string): Promise<WikiPa
 
 /* Answers from Wikipedia intros with one model call. Returns null when no page was found or the call failed;
    answer is null when the model read the pages and they don't answer the question. */
-async function answerFromWikipedia(question: string, apiKey: string, model: string) {
+async function answerFromWikipedia(question: string, chain: ModelChoice[]) {
   const terms = wikiSearchTerms(question);
   const [malay, english] = await Promise.all([searchWikipedia("ms", terms), searchWikipedia("en", terms)]);
   const pages = usableWikiPages([...malay, ...english]);
@@ -400,35 +336,16 @@ async function answerFromWikipedia(question: string, apiKey: string, model: stri
     `question, or it is not a genuine study or general-knowledge question, or it is unsafe, reply with exactly TIADA_JAWAPAN ` +
     `and nothing else. Do not claim the answer comes from the textbook. Otherwise end with exactly RUJUKAN: <N>, choosing ` +
     `the page you used most.\n\n${teacherStyle("ask")}Wikipedia:\n${context}\n\nSoalan pelajar:\n${question}\n\nJawapan:`;
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1200, temperature: 0.2 },
-        }),
-      },
-    );
-    if (!response.ok) {
-      console.error("Gemini Wikipedia answer failed", response.status, (await response.text()).slice(0, 300));
-      return null;
-    }
-    const payload = await response.json();
-    const raw = payload?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join("") ?? "";
-    const read = readWikiAnswer(raw, pages.length);
-    const page = read ? pages[read.index] : null;
-    return {
-      answer: read && page ? { text: read.text, links: [{ url: page.url, title: `Wikipedia: ${page.title}`.slice(0, 120) }] } : null,
-      promptTokens: Number(payload?.usageMetadata?.promptTokenCount) || null,
-      outputTokens: Number(payload?.usageMetadata?.candidatesTokenCount) || null,
-    };
-  } catch (error) {
-    console.error("Gemini Wikipedia request failed", error instanceof Error ? `${error.name}: ${error.message.replaceAll(apiKey, "[key]")}` : "UnknownError");
-    return null;
-  }
+  const reply = await callChain(chain, FLOW_PERSONA, prompt);
+  if (!reply) return null;
+  const read = readWikiAnswer(reply.text, pages.length);
+  const page = read ? pages[read.index] : null;
+  return {
+    answer: read && page ? { text: read.text, links: [{ url: page.url, title: `Wikipedia: ${page.title}`.slice(0, 120) }] } : null,
+    model: reply.model,
+    promptTokens: reply.promptTokens,
+    outputTokens: reply.outputTokens,
+  };
 }
 
 /* Grounding with Google Search for questions the textbook does not cover. Returns null unless real search results back the answer. */
