@@ -300,35 +300,6 @@
   transform: translate(-50%, 0);
 }
 
-.shelf-flight {
-  position: fixed;
-  z-index: 80;
-  pointer-events: none;
-  transform-origin: 0 0;
-  perspective: 900px;
-}
-.shelf-flight .cover,
-.shelf-flight .inside {
-  position: absolute;
-  inset: 0;
-  border: 2.5px solid #141a3d;
-  border-radius: 4px;
-}
-.shelf-flight .inside {
-  background: #fbfbff;
-}
-.shelf-flight .cover {
-  background: var(--c);
-  transform-origin: 0 50%;
-  backface-visibility: hidden;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-family: "Bricolage Grotesque", sans-serif;
-  font-weight: 700;
-  font-size: 22px;
-}
-
 @media (max-width: 700px) {
   .bookshelf-section {
     padding: 56px 16px 56px;
