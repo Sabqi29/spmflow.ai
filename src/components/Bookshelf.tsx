@@ -49,25 +49,11 @@ export default function Bookshelf(){
   if(scroll)shelf.current?.querySelector(`[data-i="${i}"]`)?.scrollIntoView({behavior:reduce?'auto':'smooth',inline:'center',block:'nearest'});
  }
 
- /* The book flies to the centre of the screen and its cover swings open, then we enter the subject. */
+ /* Open the subject straight away; coming-soon books only show a note. */
  function open(i:number){
   const b=books[i];
   if(!b.live||!b.to){setNote(t(`${b.bm} akan datang. Kami sedang menyediakannya.`,`${b.en} is coming soon. We are preparing it.`));return}
-  const el=shelf.current?.querySelector(`[data-i="${i}"]`);
-  if(reduce||!el||!('animate' in Element.prototype)){navigate(b.to);return}
-  const src=el.getBoundingClientRect();
-  const fw=Math.min(260,innerWidth*.5),fh=fw*1.38;
-  const f=document.createElement('div');f.className='shelf-flight';f.style.setProperty('--c',b.color);
-  Object.assign(f.style,{left:src.left+'px',top:src.top+'px',width:src.width+'px',height:src.height+'px'});
-  const inside=document.createElement('div');inside.className='inside';
-  const cover=document.createElement('div');cover.className='cover';cover.textContent=b.bm;
-  f.append(inside,cover);document.body.appendChild(f);
-  const tx=innerWidth/2-fw/2-src.left,ty=innerHeight/2-fh/2-src.top;
-  const move=f.animate([{transform:'translate(0,0) scale(1,1)'},{transform:`translate(${tx}px,${ty}px) scale(${fw/src.width},${fh/src.height})`}],{duration:520,easing:'cubic-bezier(.22,1,.36,1)',fill:'forwards'});
-  move.onfinish=()=>{
-   const swing=cover.animate([{transform:'rotateY(0)'},{transform:'rotateY(-165deg)'}],{duration:460,easing:'cubic-bezier(.65,0,.35,1)',fill:'forwards'});
-   swing.onfinish=()=>{navigate(b.to!);f.animate([{opacity:1},{opacity:0}],{duration:240,fill:'forwards'}).onfinish=()=>f.remove()};
-  };
+  navigate(b.to);
  }
 
  return <section className="bookshelf-section" id="rak">
