@@ -24,7 +24,7 @@ export function normalizeQuestion(text: string) {
 }
 
 export async function cacheKey(task: Task, formLevel: number, question: string, model: string) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`v1|${task}|${formLevel}|${model}|${normalizeQuestion(question)}`));
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`v2|${task}|${formLevel}|${model}|${normalizeQuestion(question)}`));
   return Array.from(new Uint8Array(bytes)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
@@ -36,6 +36,21 @@ export function isCacheable(task: Task, hasPractice: boolean) {
 /* Estimated USD cost from token counts and per-million prices (defaults are placeholders; set GEMINI_INPUT_USD_PER_M / GEMINI_OUTPUT_USD_PER_M to the current price). */
 export function estimateCost(promptTokens: number | null, outputTokens: number | null, inputPerMillion = 0.1, outputPerMillion = 0.4) {
   return ((promptTokens ?? 0) * inputPerMillion + (outputTokens ?? 0) * outputPerMillion) / 1_000_000;
+}
+
+/* How Flow writes: like a friendly Sejarah cikgu, in short Markdown the chat renders as notes or a mind map. Hints stay one or two sentences. */
+export function teacherStyle(task: Task) {
+  if (task === "hint") return "";
+  return "Gaya jawapan: tulis seperti cikgu Sejarah yang mesra dan jelas, guna Markdown ringkas:\n" +
+    "1. Mula dengan 1-2 ayat yang terus menjawab soalan.\n" +
+    "2. Tajuk `### Isi penting`, kemudian 2-6 isi bernombor. Setiap isi bermula dengan **kata kunci** dalam huruf tebal, " +
+    "diikuti huraian pendek. Guna sub-poin `-` (inden 3 ruang) hanya jika perlu, maksimum 3 setiap isi.\n" +
+    "3. Tajuk `### Cara ingat` dan SATU ayat petua untuk faham atau hafal isi tadi, contohnya akronim daripada " +
+    "huruf awal kata kunci (nyatakan setiap huruf), kaitan sebab-akibat, atau perbandingan dengan kehidupan harian. " +
+    "Jangan reka fakta baharu untuk petua ini.\n" +
+    "4. Akhiri dengan tajuk `### Tip SPM` dan SATU ayat tentang cara menjawab soalan ini dalam peperiksaan " +
+    "(contoh: kata kunci yang pemeriksa cari, atau format isi + huraian).\n" +
+    "Jangan guna jadual, emoji atau tajuk lain. Ayat pendek, mudah difahami pelajar Tingkatan 4-5.\n\n";
 }
 
 /* Task-specific instruction added to the tutor prompt. */

@@ -1,5 +1,5 @@
 import { withSupabase } from "npm:@supabase/server";
-import { cacheKey, estimateCost, googleBackupAllowed, isCacheable, keywords, mayUseWeb, outOfSyllabus, parseTask, readWikiAnswer, scrubPersonalInfo, taskPrompt, termCoverage, usableWikiPages, wikiSearchTerms, type Task, type WikiPage } from "./gateway.ts";
+import { cacheKey, estimateCost, googleBackupAllowed, isCacheable, keywords, mayUseWeb, outOfSyllabus, parseTask, readWikiAnswer, scrubPersonalInfo, taskPrompt, teacherStyle, termCoverage, usableWikiPages, wikiSearchTerms, type Task, type WikiPage } from "./gateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -322,7 +322,7 @@ async function generateWithGemini(
     `Do not invent facts. ` +
     (allowNotInBook ? `If the context does not contain the answer, reply with exactly TIADA_DALAM_BUKU and nothing else. Otherwise end` : `End`) +
     ` with exactly RUJUKAN: <N>, choosing one supplied source.\n\n` +
-    `Konteks:\n${context}\n\n${practicePrompt(practice)}${taskPrompt(task)}Soalan pelajar:\n${question}\n\nJawapan:`;
+    `Konteks:\n${context}\n\n${practicePrompt(practice)}${teacherStyle(task)}${taskPrompt(task)}Soalan pelajar:\n${question}\n\nJawapan:`;
 
   try {
     const response = await fetch(
@@ -399,7 +399,7 @@ async function answerFromWikipedia(question: string, apiKey: string, model: stri
     `unless the student asks in English. Do not add facts that are not in the extracts. If the extracts do not answer the ` +
     `question, or it is not a genuine study or general-knowledge question, or it is unsafe, reply with exactly TIADA_JAWAPAN ` +
     `and nothing else. Do not claim the answer comes from the textbook. Otherwise end with exactly RUJUKAN: <N>, choosing ` +
-    `the page you used most.\n\nWikipedia:\n${context}\n\nSoalan pelajar:\n${question}\n\nJawapan:`;
+    `the page you used most.\n\n${teacherStyle("ask")}Wikipedia:\n${context}\n\nSoalan pelajar:\n${question}\n\nJawapan:`;
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -437,7 +437,7 @@ async function answerFromWeb(question: string, apiKey: string, model: string) {
     `Sejarah textbook, so answer from Google Search results. Answer clearly and concisely in casual Bahasa Melayu unless ` +
     `the student asks in English. Only state facts supported by the search results. If the question is not a genuine ` +
     `study or general-knowledge question, or is unsafe, reply with exactly TIADA_JAWAPAN and nothing else. ` +
-    `Do not claim the answer comes from the textbook.\n\nSoalan pelajar:\n${question}`;
+    `Do not claim the answer comes from the textbook.\n\n${teacherStyle("ask")}Soalan pelajar:\n${question}`;
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
