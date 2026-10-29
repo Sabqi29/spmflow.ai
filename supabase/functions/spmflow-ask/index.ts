@@ -54,7 +54,7 @@ const securedHandler = withSupabase(
       if(practice.form_level&&[4,5].includes(practice.form_level))formLevel=practice.form_level;
     }
     const task = parseTask(body.task_type, !!practice);
-    // ILMU first when AI_PROVIDER=ilmu, Gemini as the backup. The first model names the cache entry and the usage rows.
+    // Every model with a key: ILMU first when AI_PROVIDER=ilmu, Gemini first otherwise. The first model names the cache entry and the usage rows.
     const chain = modelChain((name) => Deno.env.get(name));
     const model = chain[0]?.model ?? "gemini-3.5-flash-lite";
     const usage = (entry: { model: string | null; cacheHit?: boolean; degraded?: boolean; promptTokens?: number | null; outputTokens?: number | null; searchCalls?: number }) =>
