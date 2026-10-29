@@ -1984,3 +1984,38 @@ a.chip:hover {
 .web-citation:hover { background: #d1e1f2; }
 .web-searches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .web-searches a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid #cbd9e8; border-radius: 20px; background: #fff; color: #3d6087; font-size: 11px; }
+
+/* Full-screen tutor pane */
+.study-tabs .pane-zoom {
+  flex: 0 0 auto;
+  width: 52px;
+  padding: 0;
+  color: var(--ink);
+  border-left: 1px solid #f0dfd3;
+}
+.study-tabs .pane-zoom:hover,
+.study-tabs .pane-zoom:focus-visible {
+  background: var(--sun-soft);
+}
+.tutor-pane.zoomed {
+  position: fixed;
+  inset: 16px;
+  z-index: 60;
+  display: flex;
+  height: auto;
+  box-shadow: 0 0 0 100vmax rgba(20, 19, 46, 0.45), 8px 8px 0 var(--ink);
+}
+.tutor-pane.zoomed .chat-messages {
+  padding-inline: max(20px, calc((100% - 920px) / 2));
+}
+.tutor-pane.zoomed .chat-composer {
+  width: min(920px, calc(100% - 32px));
+  margin: 8px auto 0;
+}
+@media (max-width: 760px) {
+  .tutor-pane.zoomed {
+    inset: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
