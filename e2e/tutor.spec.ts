@@ -33,10 +33,10 @@ test('answers a textbook question with a real page citation',async({request})=>{
 
 test('labels a question outside the textbook instead of citing a page',async({request})=>{
  test.skip(process.env.E2E_TUTOR!=='1','set E2E_TUTOR=1 to spend one guest question');
- const response=await ask(request,{question:'Bilakah iPhone pertama dilancarkan oleh Apple?',form_level:4,subject:'sejarah'});
+ const response=await ask(request,{question:'Siapakah pengasas syarikat Microsoft?',form_level:4,subject:'sejarah'});
  expect(response.status()).toBe(200);
  const body=await response.json();
- console.log('out-of-textbook answer_source:',body.answer_source,'sources:',JSON.stringify(body.sources??null).slice(0,300));
+ console.log('out-of-textbook answer_source:',body.answer_source,'provider:',body.web_provider,'sources:',JSON.stringify(body.sources??null).slice(0,300));
  expect(['web','none']).toContain(body.answer_source);
  expect(body.source).toBeNull();
  if(body.answer_source==='web')expect(body.sources.some((s:{kind:string;url?:string})=>s.kind==='web'&&s.url?.startsWith('https://'))).toBe(true);
