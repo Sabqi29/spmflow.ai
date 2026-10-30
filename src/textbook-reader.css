@@ -1,7 +1,7 @@
 .book-scroll.book-reader-shell {
   padding: 0;
   overflow: hidden;
-  background: #ded6c2;
+  background: #f1f1ef;
   min-height: 0;
 }
 .textbook-reader {
@@ -44,7 +44,7 @@ a.reader-icon {
 }
 .reader-icon:hover,
 .reader-icon.active {
-  background: #f7eee8;
+  background: #f1f1ef;
 }
 .reader-icon:disabled {
   opacity: 0.35;
@@ -56,7 +56,7 @@ a.reader-icon {
 .reader-divider {
   width: 1px;
   height: 22px;
-  background: #efdfd5;
+  background: #e7e7e4;
   margin: 0 5px;
   flex: 0 0 auto;
 }
@@ -92,7 +92,7 @@ a.reader-icon {
   flex: 1;
   min-height: 260px;
   overflow: auto;
-  background: #ded6c2;
+  background: #f1f1ef;
   display: flex;
   align-items: center;
   justify-content: center;

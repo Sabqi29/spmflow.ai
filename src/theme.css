@@ -1,19 +1,20 @@
-/* SPMFlow theme layer: retro poster bento. Cream graph paper, ink outlines,
-   sunshine yellow and red-orange, with a chunky display face for headlines.
+/* SPMFlow theme layer: retro poster bento in minimal colours. White graph
+   paper, ink outlines, sunshine yellow as the one accent, with a chunky
+   display face for headlines.
    Loaded after index.css so these rules win over the base component styles. */
 :root {
-  --ink: #1d1d37;
-  --ink-2: #2c2b4d;
-  --red: #e8482c;
-  --red-2: #c9361d;
+  --ink: #1f1f1f;
+  --ink-2: #333333;
+  --red: #1f1f1f;
+  --red-2: #000000;
   --sun: #ffc53d;
-  --sun-soft: #fff1c9;
-  --peach: #fde3d6;
-  --paper: #fbefe6;
-  --card: #fdf9f6;
-  --line: #ecd9cc;
-  --dash: #e2bfae;
-  --muted: #7c665d;
+  --sun-soft: #fbf6e6;
+  --peach: #f6f6f4;
+  --paper: #ffffff;
+  --card: #ffffff;
+  --line: #e7e7e4;
+  --dash: #d9d9d5;
+  --muted: #6f6f6b;
   --ok: #12876a;
   --radius-card: 22px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -25,8 +26,8 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: var(--paper);
   background-image:
-    linear-gradient(rgb(232 72 44 / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(232 72 44 / 0.07) 1px, transparent 1px);
+    linear-gradient(rgb(55 53 47 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(55 53 47 / 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 ::selection {
@@ -57,16 +58,13 @@ textarea:focus-visible {
   font-family: "Titan One", sans-serif;
   font-weight: 400;
   text-transform: uppercase;
-  color: var(--sun);
-  -webkit-text-stroke: 2.5px var(--red);
-  paint-order: stroke fill;
-  text-shadow: 4px 4px 0 var(--red);
+  color: var(--ink);
+  text-shadow: 3px 3px 0 var(--sun);
   letter-spacing: 0.01em;
   line-height: 0.98;
 }
 .retro.small {
-  -webkit-text-stroke-width: 2px;
-  text-shadow: 3px 3px 0 var(--red);
+  text-shadow: 3px 3px 0 var(--sun);
 }
 
 /* Header: a dashed card floating on the paper */
@@ -76,7 +74,7 @@ textarea:focus-visible {
   margin: 10px 16px 0;
   height: 64px;
   padding: 0 18px 0 22px;
-  background: rgb(253 249 246 / 0.88);
+  background: rgb(255 255 255 / 0.9);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1.5px dashed var(--dash);
@@ -831,7 +829,7 @@ textarea:focus-visible {
   border-color: #f3dd9b;
 }
 .roadmap-section {
-  background: var(--peach);
+  background: #f7f7f5;
   color: var(--ink);
 }
 .roadmap-section h2,
@@ -911,23 +909,23 @@ textarea:focus-visible {
   color: var(--red);
 }
 .final-cta {
-  background: var(--red);
+  background: #f7f7f5;
   border: 2px solid var(--ink);
-  color: #fff;
+  color: var(--ink);
 }
 .final-cta h2 {
   font-weight: 400;
   text-transform: uppercase;
-  text-shadow: 3px 3px 0 var(--ink);
+  text-shadow: 3px 3px 0 var(--sun);
 }
 .final-cta em {
-  color: var(--sun);
+  color: var(--ink);
 }
 .final-cta .eyebrow {
-  color: #ffe0d6;
+  color: var(--ink);
 }
 .final-cta .button-row a:not(.button) {
-  color: #fff;
+  color: var(--ink);
 }
 .footer {
   max-width: 1320px;
