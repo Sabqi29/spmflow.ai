@@ -9,7 +9,7 @@ type Game={id:string;icon:typeof Route;title:[string,string];blurb:[string,strin
 /* The Cabaran tab: one card per daily game. A game with Component null shows as "akan datang".
    To add a game, put it in src/components/challenge/ and add a lazy() entry here. */
 const GAMES:Game[]=[
- {id:'kronologi',icon:Route,title:['Laluan Masa','Time Path'],blurb:['Sambung peristiwa dalam buku teks mengikut kronologi. Siapa paling laju?','Join textbook events in chronological order. Who is fastest?'],Component:null},
+ {id:'kronologi',icon:Route,title:['Laluan Masa','Time Path'],blurb:['Sambung peristiwa dalam buku teks mengikut kronologi. Siapa paling laju?','Join textbook events in chronological order. Who is fastest?'],Component:lazy(()=>import('./LaluanMasa'))},
  {id:'isi',icon:PencilLine,title:['Fakta Hilang','Missing Fact'],blurb:['Satu fakta Sejarah, satu tempat kosong, lima peluang untuk mengisinya.','One History fact, one blank, five chances to fill it.'],Component:lazy(()=>import('./IsiTempat'))}
 ];
 
