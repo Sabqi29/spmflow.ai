@@ -80,6 +80,16 @@ create table public.chat_sessions (
   form_level integer not null default 4,
   created_at timestamptz not null default now()
 );
+create table public.chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.chat_sessions(id) on delete cascade,
+  user_id uuid not null,
+  role text not null check (role in ('user','assistant')),
+  content text not null,
+  sources jsonb not null default '[]',
+  degraded boolean not null default false,
+  created_at timestamptz not null default now()
+);
 
 create function private.is_class_member(target_class uuid) returns boolean language sql stable security definer set search_path = '' as $$
   select exists (select 1 from public.class_members where class_id = target_class and user_id = (select auth.uid()));

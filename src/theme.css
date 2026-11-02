@@ -2148,3 +2148,23 @@ a.chip:hover {
 @media (prefers-reduced-motion: reduce) {
   .game-countdown strong, .game-clock.low, .game-feedback, .game-medal.perfect { animation: none; }
 }
+
+/* Sejarah (study history) */
+.history-page .muted-copy { display: inline-flex; align-items: center; gap: 6px; }
+.history-tabs { margin: 8px 0 18px; }
+.history-tabs .chip { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.history-list { display: grid; gap: 12px; }
+.history-item { padding: 14px 16px; }
+.history-row { display: flex; align-items: center; gap: 10px; }
+.history-main { flex: 1; min-width: 0; display: grid; gap: 3px; text-align: left; background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: none; }
+.history-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-main small { color: var(--muted, #667085); }
+.history-score { display: grid; justify-items: end; font-size: 1.05rem; line-height: 1.1; }
+.history-score small { font-size: .75rem; font-weight: 500; color: var(--muted, #667085); }
+.history-score.good { color: #157a3d; }
+.history-item .answer-review { margin-top: 14px; }
+@media (max-width: 560px) {
+  .history-item { padding: 12px; }
+  .history-row { gap: 6px; }
+  .history-main strong { white-space: normal; }
+}
