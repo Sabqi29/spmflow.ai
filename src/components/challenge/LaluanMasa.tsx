@@ -62,6 +62,7 @@ export default function LaluanMasa({onOpenPage}:GameProps){
   supabase.rpc('get_chrono_leaderboard',{target_day:boardDay}).then(({data})=>setLeaders((data as Leader[]|null)||[]))},[user,boardDay]);
  useEffect(()=>{if(phase!=='play')loadLeaders()},[phase,loadLeaders]);
 
+ useEffect(()=>{if(!flash)return;const id=setTimeout(()=>setFlash(null),700);return()=>clearTimeout(id)},[flash]);
  useEffect(()=>{if(phase!=='play')return;const id=setInterval(()=>setNow(Date.now()),100);return()=>clearInterval(id)},[phase]);
 
  async function start(asRanked:boolean){
