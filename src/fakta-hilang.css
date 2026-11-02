@@ -1,0 +1,72 @@
+/* Fakta Hilang (Cabaran tab): daily fill-in-the-blank. Warna minimal: white, grey lines, ink outlines, one yellow accent. */
+.isi-game { display: flex; flex-direction: column; gap: 14px; }
+.isi-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.isi-head .eyebrow { margin: 0; }
+.isi-chip { padding: 4px 10px; border: 1.5px solid var(--line); border-radius: 999px; background: #fff; font-size: 12px; font-weight: 700; color: var(--muted); }
+
+.isi-card { padding: 20px 18px 16px; border: 1.5px solid var(--ink); border-radius: var(--radius-card); background: #fff; box-shadow: 5px 5px 0 var(--ink); }
+.isi-fact { margin: 0; font-family: "Bricolage Grotesque", "Plus Jakarta Sans", sans-serif; font-size: 1.22rem; font-weight: 600; line-height: 1.9; }
+.isi-blank { display: inline-flex; flex-wrap: wrap; gap: 4px 10px; margin: 0 4px; vertical-align: middle; }
+.isi-word { display: inline-flex; gap: 3px; }
+.isi-slot { display: inline-grid; place-items: center; width: 1.45em; height: 1.65em; border-bottom: 3px solid var(--ink); background: var(--peach); border-radius: 5px 5px 2px 2px; font-family: "Plus Jakarta Sans", sans-serif; font-size: .95em; font-weight: 800; line-height: 1; transition: background .25s var(--ease-out), transform .25s var(--spring); }
+.isi-slot.on { background: var(--sun); transform: translateY(-1px); }
+.isi-slot.won { background: var(--sun); border-bottom-color: var(--ok); }
+.isi-slot.lost:not(.on) { background: #fff; }
+.isi-slot.lost { border-bottom-color: var(--muted); }
+
+.isi-lives { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+.isi-lives span { width: 22px; height: 7px; border-radius: 999px; background: var(--ink); }
+.isi-lives span.used { background: var(--dash); }
+.isi-lives span.hit { background: var(--sun); outline: 1.5px solid var(--ink); }
+.isi-lives small { margin-left: 6px; color: var(--muted); font-size: 12px; font-weight: 700; }
+
+.isi-form { display: flex; gap: 8px; }
+.isi-form input { flex: 1; min-width: 0; padding: 12px 14px; border: 1.5px solid var(--ink); border-radius: 14px; background: #fff; font: inherit; font-size: 16px; font-weight: 600; }
+.isi-form input:focus { outline: 3px solid var(--sun); outline-offset: 1px; }
+.isi-form .button { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.isi-notice { margin: -4px 0 0; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+
+.isi-tries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.isi-tries li { display: grid; grid-template-columns: 18px minmax(0, auto) 1fr; align-items: center; gap: 8px; padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font-size: 14px; }
+.isi-tries li strong { overflow-wrap: anywhere; }
+.isi-tries li span { justify-self: end; text-align: right; font-size: 12px; font-weight: 700; color: var(--muted); }
+.isi-tries li.close { border-color: var(--ink); }
+.isi-tries li.close span { color: var(--ink); }
+.isi-tries li.near span { color: var(--ink-2); }
+.isi-tries li.right { border-color: var(--ink); background: var(--sun-soft); }
+.isi-tries li.right span { color: var(--ok); }
+
+.isi-hints { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.isi-hint { display: flex; gap: 8px; padding: 10px 12px; border: 1.5px dashed var(--dash); border-radius: 14px; color: var(--muted); font-size: 13px; }
+.isi-hint svg { flex: none; margin-top: 2px; }
+.isi-hint small { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.isi-hint p { margin: 2px 0 0; line-height: 1.45; }
+.isi-hint.open { border: 1.5px solid var(--ink); background: var(--sun-soft); color: var(--ink); }
+.isi-hint .citation { margin-top: 6px; }
+
+.isi-result { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1.5px solid var(--ink); border-radius: 18px; background: var(--sun-soft); }
+.isi-result.lost { background: var(--peach); }
+.isi-result strong { font-size: 1.05rem; }
+.isi-result p { margin: 0; line-height: 1.55; }
+.isi-answer { font-family: "Titan One", sans-serif; font-size: 1.6rem; letter-spacing: .02em; }
+.isi-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.isi-share { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1.5px solid var(--ink); border-radius: 999px; background: #fff; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.isi-next { font-size: 12.5px; color: var(--muted); }
+
+.isi-stats { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 18px; background: #fff; }
+.isi-numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; text-align: center; }
+.isi-numbers strong { display: inline-flex; align-items: center; justify-content: center; gap: 3px; font-family: "Titan One", sans-serif; font-size: 1.4rem; font-weight: 400; }
+.isi-numbers small { display: block; color: var(--muted); font-size: 11px; }
+.isi-dist { display: flex; flex-direction: column; gap: 4px; }
+.isi-dist div { display: grid; grid-template-columns: 14px 1fr; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+.isi-dist i { display: block; min-width: 22px; padding: 2px 6px; border-radius: 6px; background: var(--peach); font-style: normal; text-align: right; }
+.isi-dist div.me i { background: var(--sun); }
+.isi-local { color: var(--muted); font-size: 11px; }
+
+@media (max-width: 520px) {
+  .isi-fact { font-size: 1.08rem; }
+  .isi-hints { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .isi-slot { transition: none; }
+}
