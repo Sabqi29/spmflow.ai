@@ -1,0 +1,17 @@
+/* Cabaran tab: the daily games hub. Game styles use their own prefixes (isi-, laluan-). */
+.cabaran-shell { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 20px 28px; display: flex; flex-direction: column; gap: 14px; }
+.cabaran-home h2 { margin: 0; font-size: 1.5rem; line-height: 1.15; }
+.cabaran-home > p { margin: 0; color: var(--muted); line-height: 1.6; }
+.cabaran-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.cabaran-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; border: 1.5px solid var(--ink); border-radius: 18px; background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 4px 4px 0 var(--ink); transition: transform .15s var(--ease-out), box-shadow .15s var(--ease-out); }
+.cabaran-card:not(:disabled):hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.cabaran-card:disabled { cursor: default; border-style: dashed; box-shadow: none; opacity: .7; }
+.cabaran-icon { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--sun); border: 1.5px solid var(--ink); }
+.cabaran-card:disabled .cabaran-icon { background: var(--peach); }
+.cabaran-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.cabaran-text strong { font-size: 1.05rem; }
+.cabaran-text small { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.cabaran-card em { font-style: normal; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--peach); color: var(--muted); white-space: nowrap; }
+.cabaran-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1.5px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.cabaran-back:hover { border-color: var(--ink); }
+.cabaran-loading { color: var(--muted); }
