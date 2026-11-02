@@ -797,6 +797,20 @@ textarea:focus-visible {
   border: 2px solid var(--ink);
   box-shadow: 6px 6px 0 var(--ink);
 }
+.product-shot {
+  display: block;
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+}
+.product-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.product-shot:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 9px 9px 0 var(--ink);
+}
 .preview-bar .brand {
   font-size: 15px;
 }
