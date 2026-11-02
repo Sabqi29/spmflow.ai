@@ -1,0 +1,430 @@
+# Kronologi peristiwa Sejarah KSSM Tingkatan 4 dan 5, disusun dari teks buku teks (data/rag/textbook_chunks.json).
+# Format: tarikh|muka surat bercetak|peristiwa. Tarikh: YYYY, YYYY-MM atau YYYY-MM-DD. #T4B2 = Tingkatan 4 Bab 2.
+# Halaman PDF = halaman bercetak + 8 (T4) atau + 10 (T5). Jalankan: node scripts/build-laluan.mjs
+#T4B2
+1688|24|Revolusi Keagungan di England
+1776-07|25|Perisytiharan Kemerdekaan Amerika ditulis oleh Thomas Jefferson
+1783|25|Revolusi Amerika berakhir, British mengakui kemerdekaan Amerika
+1789|25|Revolusi Perancis meletus
+1857|26|Dahagi India 1857
+1885|26|Kongres Kebangsaan India (INC) dibentuk
+1906|26|Liga Muslim ditubuhkan di India
+1947-08-14|26|Pakistan diumumkan sebagai negara merdeka
+1947-08-15|26|India mengisytiharkan kemerdekaan
+1911|26|Revolusi China menumbangkan Dinasti Manchu
+1883|27|Jamal al-Din al-Afghani menubuhkan al-Urwah al-Wuthqa
+1868|27|Maharaja Meiji melancarkan gerakan pemulihan Jepun
+1892|28|Jose Rizal menubuhkan Liga Filipina
+1896|28|Katipunan melancarkan Revolusi Filipina
+1899|28|Aguinaldo mengisytiharkan kemerdekaan Filipina
+1907|28|Sergio Osmena menganggotai Dewan Perhimpunan Filipina
+1886|28|Burma dijajah British dan dijadikan sebahagian British-India
+1988|28|Nama Burma ditukar kepada Myanmar
+1930|29|Pemberontakan Saya San di Burma bermula
+1935|29|Perlembagaan Burma 1935 memisahkan Burma daripada India
+1937|29|Ba Maw dilantik Perdana Menteri pertama Burma
+1945-09|29|Ho Chi Minh mengisytiharkan Republik Demokratik Vietnam
+1976|29|Republik Vietnam terbentuk
+1928|30|Kongres Pemuda Indonesia melafazkan Sumpah Pemuda
+1932|31|Parti Rakyat melancarkan Revolusi Thai
+1939|31|Siam ditukar nama kepada Thailand
+1914|35|Madrasah al-Attas dibuka di Johor Bahru
+1916|35|Madrasah al-Masyhur dibuka di Pulau Pinang
+1905|37|Maktab Melayu Kuala Kangsar (MCKK) ditubuhkan
+1922|37|Maktab Perguruan Sultan Idris (SITC) ditubuhkan
+1926|40|Kesatuan Melayu Singapura (KMS) ditubuhkan
+1934|40|PASPAM bermula di Pulau Pinang
+1937-05|40|Kesatuan Melayu Muda (KMM) ditubuhkan
+1938|40|KMM didaftarkan
+1936-10|41|Central India Association of Malaya (CIAM) ditubuhkan
+1902|41|Khalsa Diwan Malaya ditubuhkan di Taiping
+1896|42|Negeri-negeri Melayu Bersekutu dibentuk
+1941|42|Ibrahim Haji Yaakob dan rakan ditangkap British
+1942|42|Pemimpin KMM dibebaskan oleh Jepun
+#T4B3
+1904|52|Enakmen Undang-Undang Islam 1904 diperkenalkan
+1914-11-11|52|Empayar Uthmaniyah mengeluarkan fatwa jihad
+1914-07-28|54|Austria-Hungary mengisytiharkan perang terhadap Serbia
+1914-07-30|54|Rusia membantu mempertahankan Serbia
+1914-08-01|54|Jerman mengisytiharkan perang terhadap Rusia
+1914-08-03|54|Jerman mengisytiharkan perang terhadap Perancis
+1914-08-04|54|Britain menyertai perang menentang Jerman
+1914-10|54|Empayar Uthmaniyah menyertai Kuasa Tengah
+1915-03|54|Itali menyertai Pakatan Bertiga
+1917-04|54|Amerika Syarikat menyertai Perang Dunia Pertama
+1919-01-18|56|Persidangan Damai Paris dibuka
+1919-06-28|56|Perjanjian Versailles ditandatangani
+1922|58|Parti Fasis Mussolini menguasai Itali
+1933|58|Parti Nazi Hitler membentuk kerajaan Jerman
+1931|59|Krisis Manchuria bermula
+1935|59|Krisis Habsyah bermula
+1939-09|60|Jerman menyerang Poland
+1940-06|60|Itali mengisytiharkan perang terhadap Britain dan Perancis
+1940-09|60|Jerman melancarkan serangan udara terhadap Britain
+1943-01|62|Tentera Jerman menyerah kalah di Stalingrad
+1944-06|62|Tentera Bersekutu mendarat di Normandy (D-Day)
+1910|64|Jepun menguasai Korea
+1937|64|Jepun menduduki China
+1941-10|64|Hideki Tojo menjadi Perdana Menteri Jepun
+1940|65|Jepun menandatangani Pakatan Tiga Negara
+1942-04|66|Empayar Jepun di Asia Pasifik terbentuk
+1941-12-08|69|Jepun mendarat di Kota Bharu, Kelantan
+1941-12-16|68|Jepun mula menyerang Sarawak dan Sabah
+1942-02-15|69|Singapura jatuh ke tangan Jepun
+1942-08|70|Pentadbiran tentera Jepun di Borneo Utara dibentuk
+1943-01|70|Persidangan Raja-raja Tanah Melayu dan Sumatera di Singapura
+1944-04|70|Tanah Melayu dan Sumatera ditadbir berasingan
+1943|76|British membentuk Force 136
+1943-12|75|MPAJA dan Force 136 berjanji bekerjasama
+1943-10|79|Gerila Kinabalu Albert Kwok melancarkan serangan
+1945-05|79|Anggota SRD mendarat di Sarawak
+1942-06|80|Jepun membubarkan KMM
+1945-08-06|82|Bom atom dijatuhkan di Hiroshima
+1945-08-09|82|Bom atom dijatuhkan di Nagasaki
+1945-08-15|82|Maharaja Hirohito mengumumkan Jepun menyerah kalah
+1945-09-03|83|Tentera British mendarat di Pulau Pinang
+1945-09-10|83|Jeneral Masao Baba menyerah kalah di Labuan
+1945-09-11|83|Tentera Jepun menyerah kalah di Kuching
+1945-09-12|83|Penyerahan kalah Jepun ditandatangani di Singapura
+1982-01-01|84|Teluk Anson ditukar nama kepada Teluk Intan
+#T4B4
+1945-09-12|94|British Military Administration (BMA) bermula
+1945-12-01|94|BMA membubarkan pasukan MPAJA
+1943-02|96|Unit Perancangan Tanah Melayu dibentuk di London
+1945-10-10|96|Rancangan Malayan Union dibentangkan di Parlimen British
+1946-01-22|96|Kertas Putih Malayan Union diluluskan Parlimen British
+1945-10-11|98|Harold MacMichael tiba di Port Swettenham
+1945-10-20|98|Sultan Johor menandatangani Perjanjian MacMichael
+1945-12-21|98|Tandatangan terakhir Perjanjian MacMichael diperoleh
+1946-04-01|100|Malayan Union diisytiharkan
+1946-05-28|101|Ahli Parlimen British tiba di Kuala Kangsar
+1946-01-19|104|Ribuan orang Melayu Kedah berarak di Alor Setar
+1946-02-10|104|Pergerakan Melayu Semenanjung Johor berhimpun menentang Malayan Union
+1946-03-01|105|Kongres Melayu Se-Malaya bermula di Kuala Lumpur
+1946-05-11|105|UMNO ditubuhkan di Istana Besar, Johor Bahru
+1945-09-11|107|BBCAU diperkenalkan di Kuching
+1944-06-19|107|Pejabat Tanah Jajahan mendesak Vyner Brooke memberi kuasa kepada British
+1945-02-28|108|Pejabat Tanah Jajahan mengutus surat kepada Vyner Brooke
+1945-10-24|108|Vyner Brooke bersetuju menyerahkan Sarawak kepada British
+1946-07-01|108|Hari Penyerahan Sarawak diisytiharkan di Kuching
+1946-10-30|110|Demonstrasi pertama antipenyerahan di Astana, Kuching
+1946-12|110|Pekeliling No. 9 melarang pegawai awam menentang penyerahan
+1947-04-02|110|409 kakitangan kerajaan Sarawak meletakkan jawatan
+1949-01|111|Akhbar Utusan Sarawak diterbitkan
+1948-08-20|112|Rukun 13 ditubuhkan oleh golongan muda Sarawak
+1949-12-03|112|Duncan Stewart dibunuh di Sibu
+1951-02-05|112|Anthony Brooke menyeru gerakan antipenyerahan dihentikan
+1945-09-28|114|Kota Kinabalu dibebaskan daripada tentera Jepun
+1945-10-19|114|Sandakan dibebaskan daripada tentera Jepun
+1946-06-26|114|SBUB menandatangani perjanjian penyerahan dengan British
+1946-07-15|116|Sabah diserahkan kepada British
+#T4B5
+1946-07-25|126|Jawatankuasa Kerja ditubuhkan
+1946-11-20|134|Rangka Perjanjian Persekutuan dibentangkan di King's House
+1946-12-22|129|Kongres pertama PKMM
+1947-03|130|Cadangan PUTERA dan AMCJA digabungkan menjadi Perlembagaan Rakyat
+1947-07|128|Cadangan perlembagaan Jawatankuasa Kerja diumumkan kepada awam
+1947-09-20|131|PUTERA-AMCJA menganjurkan hartal pertama
+1947-10-20|131|Hari Hartal Se-Malaya
+1946-05-27|132|Malcolm MacDonald dan Edward Gent berunding dengan Raja-raja Melayu
+1946-07-18|133|Dato' Onn dan Raja-raja Melayu mengemukakan cadangan balas di King's House
+1948-01-21|133|Perjanjian Persekutuan Tanah Melayu 1948 ditandatangani
+1948-02-01|132|Persekutuan Tanah Melayu ditubuhkan secara rasmi
+1948-02-15|137|Persidangan Majlis Raja-Raja selepas Malayan Union dibubarkan
+#T4B6
+1924|146|Cawangan KMT ditubuhkan di hampir setiap bandar di Tanah Melayu
+1928|146|Comintern mengarahkan penubuhan Parti Komunis Nanyang
+1926|146|PKI gagal menguasai Pulau Jawa
+1930-04-30|147|Parti Komunis Malaya (PKM) ditubuhkan di Kuala Pilah
+1942|147|PKM membentuk MPAJA (Bintang Tiga)
+1948-02-19|148|Persidangan Kongres Belia Asia bermula
+1948-06-16|148|Tiga pengurus ladang dibunuh di Sungai Siput
+1948-06-18|148|Undang-Undang Darurat dikuatkuasakan di seluruh Tanah Melayu
+1948-07-23|156|Pendaftaran kebangsaan dan kad pengenalan diperkenalkan
+1948-09-13|150|Sir Henry Gurney dilantik Pesuruhjaya Tinggi British
+1949-02-27|161|Tan Cheng Lock menubuhkan MCA
+1949-09-06|158|Gurney mengisytiharkan pengampunan kepada komunis
+1949-12-22|158|Kempen "Bulan Rakyat Melawan Penjahat" diisytiharkan
+1950-02-22|150|Komunis menyerang Balai Polis Bukit Kepong
+1950|157|Rancangan Briggs dilancarkan
+1951-10-06|150|Sir Henry Gurney dibunuh komunis di Kuala Kubu Bharu
+1952-03-27|158|Templer tiba di Tanjung Malim
+1952-09-14|159|Lebih sejuta orang Cina dan India layak menjadi warganegara
+1953|153|Police Field Force (PFF) dibentuk
+1955-08|153|Polis wanita ditubuhkan
+1956|154|Pasukan Senoi Praaq ditubuhkan
+1958-10-18|153|PFF dikenali sebagai Pasukan Polis Hutan
+1955-12-28|160|Rundingan Baling dengan pemimpin PKM
+1960-07-31|163|Darurat ditamatkan di seluruh negara
+1961-01-09|151|Muzium Polis Diraja Malaysia dibuka
+#T4B7
+1946-12|172|API menerbitkan risalah Testament Politik API
+1949-01|174|Jawatankuasa Hubungan Antara Kaum (CLC) ditubuhkan
+1950|177|Lembaga Pembangunan Industri Desa (RIDA) ditubuhkan
+1951|172|Slogan UMNO diubah kepada "Merdeka"
+1951-04|178|Sistem Ahli mula dilaksanakan
+1951-09|180|Laporan Jawatankuasa Penasihat Pusat Pelajaran dikeluarkan
+1952|181|Ordinan Pelajaran 1952 diperkenalkan
+1955|182|Laporan Woodhead untuk Sarawak dan Sabah
+1956|183|Penyata Jawatankuasa Pelajaran (Penyata Razak) 1956
+1947-12|186|PUTERA dan AMCJA bergabung
+1954-02|186|Persidangan Kebangsaan diadakan
+1954-08|187|Konvensyen Kebangsaan UMNO dan MCA
+1954-10|187|MIC menyertai UMNO dan MCA membentuk Parti Perikatan
+#T4B8
+1950|196|Ordinan Pilihan Raya Pihak Berkuasa Tempatan diwujudkan
+1951|196|Pilihan raya majlis perbandaran pertama di George Town
+1952-02|196|Pilihan Raya Majlis Perbandaran Kuala Lumpur
+1954-02-01|198|Jawatankuasa Pilihan Raya dibentuk
+1954-04-26|200|Suruhanjaya Penentuan Sempadan membentuk 52 kawasan pilihan raya
+1954-05-14|198|Tunku berunding dengan Oliver Lyttelton di London
+1954-08-18|198|Rang Undang-Undang Pilihan Raya Persekutuan diluluskan
+1954-10-18|200|Pendaftaran pengundi bermula di seluruh Tanah Melayu
+1955-06-15|200|Penamaan calon Pilihan Raya MPP 1955
+1955-07-27|201|Hari mengundi Pilihan Raya Majlis Perundangan Persekutuan
+1955-08-31|204|Tunku membuka sesi pertama MPP selepas pilihan raya
+1956|203|Pilihan raya tempatan pertama di Sarawak
+1959-09-11|204|Parlimen Persekutuan Tanah Melayu ditubuhkan
+1959-09-12|204|Persidangan pertama Parlimen dirasmikan
+#T4B9
+1956-01-01|217|Rombongan kemerdekaan bertolak ke London
+1956-01-15|217|Rombongan kemerdekaan tiba di London
+1956-01-18|217|Rundingan kemerdekaan bermula di Lancaster House
+1956-02-20|219|Tunku tiba di Batu Berendam, Melaka
+1956-03-08|220|Suruhanjaya Reid diumumkan
+1956-06|220|Suruhanjaya Reid memulakan tugas
+1957-05-04|223|Kongres Parti Negara, PAS dan Parti Rakyat bincang draf perlembagaan
+1957-08-05|224|Perjanjian Persekutuan Tanah Melayu 1957 ditandatangani
+#T4B10
+1950-05-26|236|Bendera Persekutuan mula dikibarkan secara rasmi
+1956-06-22|245|Dewan Bahasa dan Pustaka ditubuhkan di Johor Bahru
+1957-05-30|236|Jata Negara diperkenalkan oleh Raja-raja Melayu
+1957-07-08|236|Tunku berucap di Radio Malaya menyeru rakyat meraikan kemerdekaan
+1957-08-03|236|Tun Razak mengumumkan atur cara sambutan kemerdekaan
+1957-08-21|236|Stadium Merdeka siap dibina
+1957-08-31|240|Pemasyhuran Kemerdekaan di Stadium Merdeka
+1957-09-02|242|Pertabalan Yang di-Pertuan Agong pertama
+1957-09-17|243|Persekutuan Tanah Melayu diterima menjadi ahli PBB
+1957-10-15|243|Bendera negara dikibarkan di ibu pejabat PBB, New York
+1913|244|Kwong Yik Bank ditubuhkan di Kuala Lumpur
+1959-01-26|244|Bank Negara mula beroperasi
+1959-11-17|244|Kementerian Pembangunan Luar Bandar diwujudkan
+1961-01-25|244|Rancangan Buku Merah dilancarkan
+#T5B1
+1957-08-31|4|Kemerdekaan Persekutuan Tanah Melayu
+1957-09-17|7|Persekutuan Tanah Melayu menjadi anggota ke-82 PBB
+1963-09-16|4|Pembentukan Malaysia
+1970|7|Deklarasi Hubungan Persahabatan PBB mengesahkan persamaan kedaulatan
+1977|11|Tun Hussein Onn bertemu Presiden Anwar Sadat di Mesir
+#T5B2
+1807|23|Charter of Justice I diperkenalkan
+1826|23|Charter of Justice II diperkenalkan
+1855|23|Charter of Justice III diperkenalkan
+1877|25|Mesyuarat pertama Majlis Negeri Perak
+1949|23|Sarawak Application of Laws Ordinance diperkenalkan
+1950|23|Majlis Undangan dan Majlis Kerja ditubuhkan di Sabah
+1951|23|Sabah Application of Laws Ordinance diperkenalkan
+1956-08|23|Perlembagaan Sarawak memberi kuasa kepada Council Negeri
+1959|23|Perlembagaan Sarawak memberi kuasa kepada Majlis Tertinggi
+1912|30|Pesuruhjaya Kehakiman bertauliah dilantik di Borneo Utara
+1928|30|Sarawak menerima Pesuruhjaya Kehakiman bertauliah
+1963|30|Jawatan Ketua Hakim Borneo diwujudkan di Kuching
+1965-08-07|31|Tunku membawa usul pindaan Singapura di Parlimen
+1994|30|Ketua Hakim Borneo dinamakan Ketua Hakim Sarawak dan Sabah
+#T5B3
+1895|38|Undang-Undang Tubuh Kerajaan Johor digubal
+1911|38|Undang-Undang Bagi Diri Kerajaan Terengganu digubal
+1897|42|Persidangan Durbar pertama di Kuala Kangsar
+1957-08-31|46|Tuanku Abdul Rahman menjadi Yang di-Pertuan Agong pertama
+1960-04-14|46|Sultan Hisamuddin Alam Shah menjadi Yang di-Pertuan Agong kedua
+1960-09-02|46|Tuanku Syed Putra menjadi Yang di-Pertuan Agong ketiga
+1965-09-21|46|Sultan Ismail Nasiruddin Shah menjadi Yang di-Pertuan Agong keempat
+1970-09-21|46|Sultan Abdul Halim menjadi Yang di-Pertuan Agong kelima
+1975-09-21|46|Sultan Yahya Petra menjadi Yang di-Pertuan Agong keenam
+1979-04-02|46|Sultan Ahmad Shah menjadi Yang di-Pertuan Agong ketujuh
+1984-04-26|46|Sultan Iskandar menjadi Yang di-Pertuan Agong kelapan
+1989-04-26|46|Sultan Azlan Shah menjadi Yang di-Pertuan Agong kesembilan
+1994-04-26|46|Tuanku Ja'afar menjadi Yang di-Pertuan Agong kesepuluh
+1999-04-26|46|Sultan Salahuddin menjadi Yang di-Pertuan Agong kesebelas
+2001-12-13|46|Tuanku Syed Sirajuddin menjadi Yang di-Pertuan Agong ke-12
+2006-12-13|46|Sultan Mizan menjadi Yang di-Pertuan Agong ke-13
+2011-12-13|46|Tuanku Abdul Halim menjadi Yang di-Pertuan Agong ke-14
+2016-12-13|46|Sultan Muhammad V menjadi Yang di-Pertuan Agong ke-15
+2011|41|Istana Negara baharu di Jalan Tuanku Abdul Halim beroperasi
+2013|41|Muzium Diraja dibuka kepada orang ramai
+1999|51|Akta Suruhanjaya Hak Asasi Manusia (SUHAKAM) diluluskan
+1962|57|Parti Perikatan Sarawak dibentuk
+1974|57|Parti Perikatan menjadi Barisan Nasional
+1990|57|Angkatan Perpaduan Ummah (APU) dibentuk
+2008|57|Pakatan Rakyat dibentuk
+2018|57|Pakatan Harapan menang Pilihan Raya Umum ke-14
+2020-02|57|Perikatan Nasional menerajui negara
+#T5B4
+1889|66|Konfederasi Seri Menanti dibentuk
+1895|66|Perjanjian Persekutuan 1895 ditandatangani
+1896|66|Negeri-negeri Melayu Bersekutu (NNMB) berkuat kuasa
+1898|66|Yang di-Pertuan Besar Negeri Sembilan pertama dilantik
+1927|67|Majlis Mesyuarat Persekutuan distruktur semula
+1956|72|FELDA ditubuhkan
+1964|76|Kementerian Kerajaan Tempatan dan Perumahan ditubuhkan
+1966|72|FELCRA ditubuhkan
+1972|74|Akta Perlindungan Hidupan Liar diwujudkan
+1976|71|Akta Kerajaan Tempatan 1976 diluluskan
+1994|75|Pulau-pulau diwartakan sebagai taman laut
+1997|77|Program Perumahan Rakyat (PPR) dilaksanakan
+2000|74|Taman Negara Kinabalu dan Mulu menjadi Tapak Warisan Dunia UNESCO
+2003|74|Rafflesia azlanii ditemukan di Royal Belum
+2006|73|Wilayah Pembangunan Iskandar dilancarkan
+2007|75|Jabatan Taman Laut Malaysia ditubuhkan
+2010|74|Akta Pemuliharaan Hidupan Liar 2010 diwujudkan
+2014|77|Majlis Perumahan Negara ditubuhkan
+2013-02-12|79|Pencerobohan pengganas Sulu di Lahad Datu
+2013-03-05|79|Ops Daulat dilancarkan
+2013-03-27|79|Zon Keselamatan Timur Sabah (ESSZONE) diisytiharkan
+2013-04-01|79|ESSCOM ditubuhkan
+2020-03-17|80|Mesyuarat Khas menyelaras Perintah Kawalan Pergerakan
+#T5B5
+1887|91|Lord Brassey mencadangkan gabungan wilayah British di Parlimen Britain
+1951|91|Malcolm MacDonald berbincang dengan Dato' Onn tentang penggabungan
+1955-10|91|Tunku mencadangkan Singapura dan Borneo menyertai Persekutuan
+1958|91|Datu Mustapha menyatakan minat membawa Sabah bergabung
+1960-06-10|91|Tunku memaklumkan Lord Perth minatnya bergabung dengan Borneo
+1961-05-27|94|Tunku mengumumkan gagasan Malaysia di Hotel Adelphi, Singapura
+1959|95|Sarawak United People's Party (SUPP) ditubuhkan
+1961-08-09|96|Barisan Bersatu dibentuk untuk mencabar gagasan Malaysia
+1961-10-16|98|Usul pembentukan Malaysia dibentangkan di Dewan Rakyat
+1961-11|100|Rundingan pembentukan Malaysia di London
+1962-01|100|Suruhanjaya Cobbold dibentuk secara rasmi
+1962-06|100|Suruhanjaya Cobbold menyerahkan laporan
+1962-08|102|Jawatankuasa Antara Kerajaan (JAK) diumumkan
+1962-09|100|Referendum di Singapura tentang penyertaan Malaysia
+1962-10|96|Sabah Alliance dibentuk menyokong Malaysia
+1962-12-07|106|Pemberontakan Brunei meletus
+1963-01-20|106|Indonesia mengumumkan dasar konfrontasi
+1963-04-12|106|Tentera Indonesia mendarat di Tebedu, Sarawak
+1963-07-09|103|Perjanjian Malaysia (MA63) ditandatangani di London
+1963-07-22|104|Stephen Kalong Ningkan dilantik Ketua Menteri Sarawak
+1963-08-12|103|PBB menubuhkan United Nations Malaysia Mission (UNMM)
+1963-09-14|103|Laporan misi PBB menyokong pembentukan Malaysia
+1963-09-16|104|Malaysia diisytiharkan
+1963-12-29|106|Pertempuran tentera Malaysia dan Indonesia di Kalabakan, Sabah
+1964-09-02|106|Gerila Indonesia mendarat di Labis, Johor
+1970|103|Bahasa Melayu menjadi bahasa pengantar pendidikan di Sabah
+#T5B6
+1952-08-05|121|Komunis menyerang Batu Kitang, Kuching
+1964-07-21|119|Rusuhan kaum di Singapura
+1965-06-30|122|Rancangan Penempatan Goodsir dijalankan
+1965-07-06|123|Operasi Hammer dilancarkan
+1965-07-22|123|Operasi Letter Box dilaksanakan
+1965-08-09|119|Pemisahan Singapura diumumkan di Dewan Rakyat
+1966|117|Sarawak dan Sabah dimasukkan dalam Rancangan Malaysia Pertama
+1966-06|118|Krisis perlembagaan Sarawak: Stephen Kalong Ningkan dipecat
+1966-09|118|Darurat diisytiharkan di Sarawak
+1968-06-17|124|PKM menyerang hendap pasukan keselamatan di Kroh, Perak
+1969-05-13|129|Peristiwa 13 Mei 1969
+1969-05-16|129|Perintah darurat diisytiharkan ke seluruh negara
+1970-02-24|123|Operasi Jala Raja di Nonok (Asajaya)
+1971-02|130|MAGERAN tamat memerintah
+1971-08-08|123|Operasi Ngayau dilancarkan
+1972-03-26|123|RASCOM dibentuk di Bahagian Ketiga Sarawak
+1973-10-21|123|Operasi Sri Aman dilancarkan
+1974-06-07|124|Ketua Polis Negara Tan Sri Abdul Rahman Hashim ditembak mati
+1974-07-04|123|Operasi Sri Aman ditamatkan
+1975-08-26|125|PKM meletupkan Tugu Negara
+1975-11-13|124|Ketua Polis Perak Tan Sri Khoo Chong Kong ditembak mati
+1980-03-05|123|Sekatan keselamatan Operasi Hammer dibatalkan
+1989-12-02|125|Perjanjian Damai Hat Yai ditandatangani
+1990-10-17|123|Perjanjian damai menamatkan ancaman komunis di Sarawak
+#T5B7
+1960|145|Jawatankuasa Rahman Talib menyemak Penyata Razak
+1961|145|Akta Pelajaran 1961 digubal
+1967|148|Akta Bahasa Kebangsaan diperkenalkan
+1969-07-18|142|Majlis Muhibah Negara diwartakan
+1970-01-29|157|MAGERAN membentuk Majlis Perundingan Negara (MAPEN)
+1970-05-18|149|Universiti Kebangsaan Malaysia (UKM) ditubuhkan
+1970-08-31|157|Rukun Negara diisytiharkan
+1971|150|Kongres Kebudayaan Kebangsaan menggubal Dasar Kebudayaan Kebangsaan
+1971-07-01|148|Akta Bahasa Kebangsaan dikuatkuasakan sepenuhnya
+1972-12-01|149|Institut Bahasa, Kesusasteraan dan Kebudayaan Melayu ditubuhkan di UKM
+1973-01-01|142|Barisan Nasional ditubuhkan menggantikan Parti Perikatan
+1974-09|146|Jawatankuasa Kabinet mengkaji pendidikan ditubuhkan
+1979|146|Laporan Jawatankuasa Kabinet diumumkan
+1982|146|Kurikulum Baru Sekolah Rendah (KBSR) diperkenalkan
+1986-04-19|153|SUKMA pertama di Kuala Lumpur
+1986-08-31|140|Perkhidmatan Feri Malaysia (Cruise Muhibah) diperkenalkan
+1988|146|Falsafah Pendidikan Negara digubal
+1989|146|KBSM mula dilaksanakan di sekolah
+1990|148|Bahasa Melayu digunakan sepenuhnya di mahkamah
+1980|154|Pasukan hoki layak ke Sukan Olimpik Moscow
+1992|155|Malaysia menjuarai Piala Thomas
+1996|147|Akta Pendidikan 1996 diluluskan
+2011|146|KSSR diperkenalkan kepada murid Tahun 1
+2017|146|KSSM bermula dengan murid Tingkatan 1
+2017-04-15|150|Kongres Kebudayaan Kebangsaan Kali Kedua di UKM
+#T5B8
+1957|171|FELDA membuka rancangan berkelompok pertama di Lurah Bilut
+1965|172|Bank Bumiputera ditubuhkan
+1966|170|Yayasan Sabah ditubuhkan
+1970-01|166|Majlis Perundingan Negara (MAPEN) ditubuhkan
+1971-02-13|166|Berita Harian melaporkan tujuan Dasar Ekonomi Baru (DEB)
+1971|171|Perbadanan Pembangunan Bandar (UDA) ditubuhkan
+1974-12-20|169|Tun Razak melancarkan Rancangan Buku Hijau
+1976|170|SALCRA ditubuhkan di Sarawak
+1980|185|HICOM ditubuhkan
+1983-05-07|187|PROTON ditubuhkan
+1985-09-01|187|Proton Saga, kereta nasional pertama, dilancarkan
+1990|174|DEB dan RRJP1 berakhir
+1991-06-17|174|Dasar Pembangunan Nasional (DPN) dilancarkan
+1993|187|PERODUA ditubuhkan
+1994|169|LPN dikenali sebagai BERNAS
+2011-07-07|184|Bandar Tun Abdul Razak dinamakan
+#T5B9
+1945|198|Pertubuhan Bangsa-Bangsa Bersatu (PBB) ditubuhkan
+1951|206|Rancangan Colombo dilaksanakan
+1957-10-12|206|Perjanjian pertahanan Britain dengan Tanah Melayu ditandatangani
+1960|200|Malaysia menyertai misi PBB di Congo (UNOC)
+1961|210|Persatuan Asia Tenggara (ASA) ditubuhkan
+1963|210|MAPHILINDO diwujudkan
+1964|214|Persidangan Pertama Kongres Islam Sedunia Rantau Asia Tenggara di KL
+1965|208|Malaysia menandatangani perjanjian sempadan dengan Thailand
+1966|196|Kementerian Hal Ehwal Luar menjadi Kementerian Luar Negeri
+1967-08-08|210|ASEAN ditubuhkan
+1969-04|214|Kuala Lumpur menjadi tuan rumah Persidangan Islam Antarabangsa
+1969-09-25|214|Pertubuhan Persidangan Islam (OIC) ditubuhkan di Rabat
+1970-06-09|215|Lawatan delegasi Arab Saudi ke Kuala Lumpur
+1971|208|Perjanjian Pertahanan Inggeris-Malaysia (AMDA) ditamatkan
+1973|217|Bank Pembangunan Islam (IsDB) ditubuhkan
+1974|208|Tun Abdul Razak melawat China
+1976-02-23|210|Sidang Kemuncak ASEAN pertama di Bali
+1976-12-08|209|Perjanjian PETRONAS dengan ESSO ditandatangani
+1978|210|Projek Industri ASEAN (AIP) dimulakan
+1983-05|216|KL menjadi tuan rumah Persidangan Keserantauan Asia tentang Palestin
+1984|216|Mujahidin Afghanistan membuka pejabat di Kuala Lumpur
+1988-08|216|Pegawai tentera Malaysia menyertai pemerhati PBB Iran-Iraq
+1989|206|Malaysia menjadi tuan rumah CHOGM
+1997|207|Nelson Mandela melawat Malaysia
+1998|207|Malaysia menjadi tuan rumah Sukan Komanwel
+2001-09-17|196|Kementerian Luar Negeri memulakan operasi di Putrajaya
+2003|212|Malaysia menjadi tuan rumah Sidang Kemuncak NAM ke-13
+2008|199|Bandar Melaka dan George Town menjadi Tapak Warisan Dunia
+#T5B10
+1979|227|Malaysia memasukkan sebahagian Kepulauan Spratly ke dalam wilayahnya
+1984|227|Akta Zon Ekonomi Eksklusif 1984
+1985|240|Dr. Omar Abdul Rahman melawat Antarktika
+1986|229|HIV/AIDS dikesan di Malaysia
+1988|226|Dr. Mahathir dipilih Ketua Jawatankuasa Antidadah Antarabangsa
+1989-10|238|Deklarasi Langkawi dalam Mesyuarat Ketua-Ketua Negara Komanwel
+1992|230|Kawasan Perdagangan Bebas ASEAN (AFTA) dilahirkan
+1995|244|Malaysia menandatangani Perjanjian SEANWFZ
+1997|232|Krisis kewangan Asia bermula dengan kejatuhan nilai ringgit
+1999|240|Malaysia giat menyelidik di Antarktika
+2002|227|Mahkamah Antarabangsa memutuskan Sipadan dan Ligitan milik Malaysia
+2004|237|Tsunami memusnahkan Aceh dan Sri Lanka
+2006|238|Langkawi diisytiharkan sebagai geopark
+2008|227|Mahkamah Antarabangsa memutuskan Pulau Batu Putih milik Singapura
+2009|238|Dasar Teknologi Hijau Negara dilancarkan
+2010-05|234|Sukarelawan Malaysia di kapal Mavi Marmara ditawan Israel
+2015|242|Komuniti ASEAN ditubuhkan melalui Deklarasi Kuala Lumpur
+2015-10-01|236|Malaysia bersedia menerima 3000 pelarian Syria
+2016-05-20|236|Tabung Kemanusiaan Program Penempatan Migran Syria dilancarkan
+2019|244|Sidang Kemuncak Kuala Lumpur 2019

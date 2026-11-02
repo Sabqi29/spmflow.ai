@@ -1,0 +1,83 @@
+/* Laluan Masa (Cabaran tab): daily chronology path puzzle. Warna minimal palette, retro shapes. */
+.laluan { display: flex; flex-direction: column; gap: 14px; }
+.laluan h2 { margin: 0; font-size: 1.45rem; line-height: 1.15; }
+.laluan-sub { margin: 6px 0 0; font-size: 15px; }
+.laluan-scope { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
+.laluan-rules { margin: 0; padding: 12px 14px 12px 32px; border: 1.5px dashed var(--dash); border-radius: 16px; background: var(--peach); font-size: 14px; line-height: 1.55; display: flex; flex-direction: column; gap: 4px; }
+.laluan-warn { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--sun-soft); border: 1px solid var(--sun); font-size: 13px; font-weight: 700; }
+.laluan-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.laluan-actions .button { display: inline-flex; align-items: center; gap: 8px; }
+.laluan-actions .text-button { display: inline-flex; align-items: center; gap: 5px; }
+.laluan-muted { margin: 0; color: var(--muted); font-size: 13px; }
+.laluan-note { margin: 0; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+
+/* Play */
+.laluan-hud { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+.laluan-hud > span:first-child { flex: 1; }
+.laluan-clock, .laluan-miss { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border: 1.5px solid var(--ink); border-radius: 999px; background: #fff; font-variant-numeric: tabular-nums; }
+.laluan-clock { min-width: 82px; justify-content: center; }
+.laluan-miss { background: var(--ink); color: #fff; }
+.laluan-grid {
+  --n: 6;
+  position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  width: min(100%, 440px); aspect-ratio: 1; align-self: center;
+  border: 2px solid var(--ink); border-radius: 18px; overflow: hidden; background: #fff;
+  box-shadow: 5px 5px 0 var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair;
+}
+.laluan-grid:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
+.laluan-cell { position: relative; display: grid; place-items: center; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background .12s; }
+.laluan-cell.lit { background: var(--sun-soft); }
+.laluan-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+.laluan-line polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.laluan-line .ink { stroke: var(--ink); stroke-width: .44; }
+.laluan-line .sun { stroke: var(--sun); stroke-width: .3; }
+.laluan-token {
+  position: relative; z-index: 2; display: grid; place-items: center; flex: none;
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--ink); background: #fff;
+  font-family: "Titan One", sans-serif; font-size: 14px; line-height: 1; color: var(--ink);
+}
+.laluan-grid .laluan-token { width: 68%; height: 68%; max-width: 44px; max-height: 44px; font-size: clamp(12px, 3.6vw, 18px); }
+.laluan-token.on { background: var(--ink); color: var(--sun); }
+.shake { animation: laluan-shake .4s ease-in-out; }
+.laluan-grid .shake { background: #ffe1dc; border-color: #c43c25; }
+@keyframes laluan-shake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.laluan-hint { margin: 0; min-height: 1.4em; text-align: center; font-size: 13px; color: var(--muted); font-weight: 600; }
+
+/* Event cards */
+.laluan-events { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.laluan-events li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; }
+.laluan-events li.on { border-color: var(--ink); background: var(--sun-soft); }
+.laluan-events li.on .laluan-token { background: var(--ink); color: var(--sun); }
+.laluan-events li > div { flex: 1; display: flex; flex-direction: column; gap: 3px; font-size: 14px; line-height: 1.4; }
+.laluan-events small { color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.laluan-order { flex: none; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px; background: var(--sun); border: 1.5px solid var(--ink); font-size: 12px; font-weight: 800; }
+.laluan-page { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border: 1px solid var(--dash); border-radius: 999px; background: #fff; font: inherit; font-size: 11.5px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.laluan-page:hover { border-color: var(--ink); }
+
+/* Result */
+.laluan-result { display: flex; flex-wrap: wrap; gap: 10px; }
+.laluan-result div { min-width: 96px; padding: 10px 14px; border: 1.5px solid var(--ink); border-radius: 14px; background: #fff; box-shadow: 3px 3px 0 var(--ink); }
+.laluan-result div:first-child { background: var(--sun); }
+.laluan-result strong { display: block; font-family: "Titan One", sans-serif; font-weight: 400; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.laluan-result small { color: var(--muted); font-size: 11.5px; }
+.laluan-result div:first-child small { color: var(--ink); }
+
+/* Leaderboard */
+.laluan-board { border: 1.5px solid var(--ink); border-radius: 18px; background: var(--card); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.laluan-board-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.laluan-board-head h3 { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 15px; }
+.laluan-tabs { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: var(--peach); }
+.laluan-tabs button { border: 0; background: none; padding: 5px 10px; border-radius: 999px; font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; color: var(--muted); }
+.laluan-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.laluan-leaders { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.laluan-leaders li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 12px; background: #fff; border: 1px solid var(--line); }
+.laluan-leaders li.me { background: var(--sun-soft); border-color: var(--sun); }
+.laluan-leaders .rank { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 800; }
+.laluan-leaders li:first-child .rank { background: var(--sun); color: var(--ink); border: 1.5px solid var(--ink); }
+.laluan-leaders strong { display: block; font-size: 13.5px; }
+.laluan-leaders em { font-style: normal; color: var(--muted); font-weight: 700; }
+.laluan-leaders small { display: block; font-size: 11px; color: var(--muted); }
+.laluan-leaders b { text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 520px) { .laluan-events li { padding: 9px 10px; } }
+@media (prefers-reduced-motion: reduce) { .shake { animation: none; } .laluan-cell { transition: none; } }
