@@ -1895,7 +1895,7 @@ a.chip:hover {
   font-weight: 700;
 }
 .set-status.locked {
-  background: var(--ink, #1d1d37);
+  background: var(--ink, #191917);
   color: #fff;
 }
 /* Set Soalan: by paper or by chapter */
@@ -1995,7 +1995,7 @@ a.chip:hover {
   width: 6px;
   height: 56px;
   border-radius: 999px;
-  background: #e2bfae;
+  background: #c5c5c3;
   transition: background 0.15s, height 0.15s;
 }
 .split-handle:hover span,
@@ -2028,7 +2028,7 @@ a.chip:hover {
 .ai-usage td {
   padding: 6px 10px;
   text-align: right;
-  border-bottom: 1px dashed #e2bfae;
+  border-bottom: 1px dashed #c5c5c3;
   white-space: nowrap;
 }
 .ai-usage th:first-child,
@@ -2047,3 +2047,53 @@ a.chip:hover {
 .web-citation:hover { background: #d1e1f2; }
 .web-searches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .web-searches a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid #cbd9e8; border-radius: 20px; background: #fff; color: #3d6087; font-size: 11px; }
+
+/* Warna minimal on app pages (Kemajuan, Panduan, Nota, Kelas): grid shows through,
+   stat tiles follow the bento stat cards (white, ink outline, offset shadow). */
+.stat-grid article {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
+}
+.stat-grid article:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+.stat-grid article:first-child {
+  background: var(--ink);
+  color: #fff;
+}
+.stat-grid article:nth-child(3) {
+  background: var(--sun);
+}
+.stat-grid article > svg {
+  color: currentColor;
+}
+.stat-grid strong {
+  font-family: "Titan One", "Bricolage Grotesque", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.stat-grid span,
+.stat-grid small {
+  color: var(--muted);
+}
+.stat-grid article:first-child span,
+.stat-grid article:first-child small {
+  color: rgb(255 255 255 / 0.72);
+}
+.stat-grid article:nth-child(3) span,
+.stat-grid article:nth-child(3) small {
+  color: var(--ink-2);
+}
+.weekly-bars {
+  border-top-color: var(--line);
+}
+.weekly-bars span {
+  background: var(--sun);
+  border: 1.5px solid var(--ink);
+}
+.weekly-bars > div:nth-child(even) span {
+  background: var(--ink);
+}

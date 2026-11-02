@@ -10,7 +10,7 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  color: #1c1b34;
+  color: #181816;
 }
 .textbook-reader:fullscreen {
   height: 100dvh;
@@ -23,7 +23,7 @@
   align-items: center;
   gap: 3px;
   padding: 6px 9px;
-  border-bottom: 1px solid #efdfd4;
+  border-bottom: 1px solid #e2e2e0;
   background: #fff;
   overflow-x: auto;
   flex-shrink: 0;
@@ -36,7 +36,7 @@
   justify-content: center;
   border-radius: 7px;
   background: transparent;
-  color: #201f3b;
+  color: #1b1b19;
   flex: 0 0 auto;
 }
 a.reader-icon {
@@ -70,17 +70,17 @@ a.reader-icon {
 .reader-page-input input {
   width: 54px;
   height: 31px;
-  border: 1px solid #ecd8cb;
+  border: 1px solid #dbdbd9;
   border-radius: 10px;
   background: #fff;
   text-align: center;
   font-size: 13px;
-  color: #1e1d38;
+  color: #191917;
 }
 .reader-page-input span,
 .reader-zoom {
   font-size: 11px;
-  color: #7e695f;
+  color: #6d6d6b;
   white-space: nowrap;
 }
 .reader-zoom {
@@ -125,7 +125,7 @@ a.reader-icon {
   position: absolute;
   inset: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #eee9df 25%, #f7f4ed 50%, #eee9df 75%);
+  background: linear-gradient(90deg, #e9e9e7 25%, #f7f4ed 50%, #e9e9e7 75%);
   background-size: 200% 100%;
   animation: reader-shimmer 1.2s infinite;
 }
@@ -160,7 +160,7 @@ a.reader-icon {
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  border-top: 1px solid #efdfd4;
+  border-top: 1px solid #e2e2e0;
   background: #fff;
   flex-shrink: 0;
 }
@@ -173,7 +173,7 @@ a.reader-icon {
 }
 .reader-scrubber input {
   width: 100%;
-  accent-color: #302f5b;
+  accent-color: #2c2c2a;
   cursor: pointer;
 }
 .reader-thumbnails {
@@ -194,7 +194,7 @@ a.reader-icon {
   align-items: center;
   gap: 2px;
   background: transparent;
-  color: #63524b;
+  color: #555553;
   flex: 0 0 auto;
 }
 .reader-thumbnail-canvas {
@@ -215,7 +215,7 @@ a.reader-icon {
   max-height: 100%;
 }
 .reader-thumbnails button.active .reader-thumbnail-canvas {
-  border: 2px solid #201f3c;
+  border: 2px solid #1b1b19;
   box-shadow: 0 0 0 2px #ffffffb8;
 }
 .reader-thumbnails small {
